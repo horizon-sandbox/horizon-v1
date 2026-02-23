@@ -1,27 +1,132 @@
+.cards-container .cards-wrapper {
+  background-color: var(--pearson-hero-bg);
+  max-width: unset;
+  padding: 0 24px 48px;
+}
+
 .cards > ul {
   list-style: none;
   margin: 0;
   padding: 0;
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(257px, 1fr));
+  grid-template-columns: 1fr;
   gap: 24px;
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .cards > ul > li {
-  border: 1px solid #dadada;
-  background-color: var(--background-color);
+  background-color: var(--pearson-card-bg);
+  color: var(--pearson-white);
+  border-radius: 24px;
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 260px;
 }
 
 .cards .cards-card-body {
-  margin: 16px;
+  margin: 0;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.cards .cards-card-body h6 {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: rgb(255 255 255 / 80%);
+  margin: 0 0 16px;
+}
+
+.cards .cards-card-body p.eyebrow {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: rgb(255 255 255 / 80%);
+  margin: 0 0 16px;
+}
+
+.cards .cards-card-body h3,
+.cards .cards-card-body h4,
+.cards .cards-card-body h5 {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--pearson-white);
+  margin: 0 0 12px;
+  line-height: 1.3;
+}
+
+.cards .cards-card-body p {
+  font-size: 14px;
+  line-height: 1.6;
+  color: rgb(255 255 255 / 85%);
+  margin: 0 0 24px;
+  flex-grow: 1;
+}
+
+.cards .cards-card-body .button-wrapper {
+  margin-top: auto;
+}
+
+.cards .cards-card-body .button {
+  background-color: var(--pearson-accent);
+  border-color: var(--pearson-accent);
+  color: var(--text-color);
+  font-weight: 600;
+  border-radius: 24px;
+  padding: 12px 24px;
+  font-size: 14px;
+  transition: background-color 0.2s ease;
+}
+
+.cards .cards-card-body .button:hover {
+  background-color: var(--pearson-accent-hover);
+  border-color: var(--pearson-accent-hover);
+  color: var(--text-color);
 }
 
 .cards .cards-card-image {
-  line-height: 0;
+  display: none;
 }
 
 .cards > ul > li img {
-  width: 100%;
-  aspect-ratio: 4 / 3;
-  object-fit: cover;
+  display: none;
+}
+
+@media (width >= 600px) {
+  .cards > ul {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (width >= 900px) {
+  .cards-container .cards-wrapper {
+    padding: 0 32px 60px;
+  }
+
+  .cards > ul {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+  }
+
+  .cards > ul > li {
+    padding: 36px;
+    min-height: 300px;
+  }
+
+  .cards .cards-card-body h3,
+  .cards .cards-card-body h4,
+  .cards .cards-card-body h5 {
+    font-size: 24px;
+  }
+
+  .cards .cards-card-body p {
+    font-size: 16px;
+  }
 }

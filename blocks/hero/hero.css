@@ -1,3 +1,4 @@
+.hero-container,
 .hero-container .hero-wrapper {
   max-width: unset;
   padding: 0;
@@ -5,33 +6,78 @@
 
 .hero {
   position: relative;
-  padding: 40px 24px;
-  min-height: 300px;
+  padding: 48px 24px 32px;
+  min-height: 200px;
+  background-color: var(--pearson-hero-bg);
+  color: var(--pearson-white);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.hero > div {
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+  padding: 0 24px;
+  position: relative;
+  z-index: 2;
 }
 
 .hero h1 {
-  max-width: 1200px;
-  margin-left: auto;
-  margin-right: auto;
-  color: var(--background-color);
+  max-width: 800px;
+  margin: 0 auto 16px;
+  color: var(--pearson-h1-color);
+  font-size: 36px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.hero p {
+  max-width: 600px;
+  margin: 0 auto;
+  font-size: 18px;
+  font-weight: 500;
+  color: var(--pearson-subtitle-color);
+  line-height: 1.5;
 }
 
 .hero picture {
-  position: absolute;
-  z-index: -1;
-  inset: 0;
-  object-fit: cover;
-  box-sizing: border-box;
+  display: none;
 }
 
 .hero img {
-  object-fit: cover;
-  width: 100%;
-  height: 100%;
+  display: none;
+}
+
+@media (width >= 600px) {
+  .hero h1 {
+    font-size: 42px;
+  }
+
+  .hero p {
+    font-size: 20px;
+  }
 }
 
 @media (width >= 900px) {
   .hero {
-    padding: 40px 32px;
+    padding: 60px 32px 32px;
+    min-height: 240px;
+  }
+
+  .hero > div {
+    padding: 0 32px;
+  }
+
+  .hero h1 {
+    font-size: 48px;
+    margin-bottom: 16px;
+  }
+
+  .hero p {
+    font-size: 22px;
   }
 }

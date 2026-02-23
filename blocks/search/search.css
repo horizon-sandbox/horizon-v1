@@ -1,0 +1,80 @@
+.search-container,
+.search-container .search-wrapper {
+  max-width: unset;
+  padding: 0;
+}
+
+.search {
+  background-color: var(--pearson-hero-bg);
+  display: flex;
+  justify-content: center;
+  padding: 24px 24px 40px;
+}
+
+.search-form {
+  width: 100%;
+  max-width: 600px;
+}
+
+.search .search-wrapper {
+  display: flex;
+  background-color: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 40px;
+  overflow: hidden;
+  transition: box-shadow 0.2s ease;
+}
+
+.search .search-wrapper:hover,
+.search .search-wrapper:focus-within {
+  box-shadow: 0 2px 12px rgb(0 0 0 / 15%);
+}
+
+.search-input {
+  flex: 1;
+  border: none;
+  padding: 12px 24px;
+  font-size: 16px;
+  background: transparent;
+  color: var(--text-color);
+  outline: none;
+  font-family: inherit;
+}
+
+.search-input::placeholder {
+  color: #888;
+}
+
+.search-button {
+  background-color: transparent;
+  border: none;
+  padding: 12px 20px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--pearson-card-bg);
+}
+
+.search-button:hover {
+  background-color: rgb(0 0 0 / 5%);
+}
+
+.search-button .icon {
+  width: 20px;
+  height: 20px;
+}
+
+.search-button .icon img {
+  filter: none;
+}
+
+@media (width >= 900px) {
+  .search {
+    padding: 24px 32px 48px;
+  }
+
+  .search-input {
+    padding: 14px 28px;
+  }
+}

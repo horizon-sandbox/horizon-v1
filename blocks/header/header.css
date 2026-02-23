@@ -1,6 +1,6 @@
 /* header and nav layout */
 header .nav-wrapper {
-  background-color: var(--background-color);
+  background-color: var(--pearson-nav-bg);
   width: 100%;
   z-index: 2;
   position: fixed;
@@ -19,6 +19,7 @@ header nav {
   height: var(--nav-height);
   padding: 0 24px;
   font-family: var(--body-font-family);
+  color: var(--pearson-white);
 }
 
 header nav[aria-expanded='true'] {
@@ -33,11 +34,13 @@ header nav[aria-expanded='true'] {
 @media (width >= 900px) {
   header .nav-wrapper {
     position: relative;
+    z-index: 999;
   }
 
   header nav {
     display: flex;
     justify-content: space-between;
+    align-items: stretch;
     gap: 0 32px;
     max-width: 1264px;
     padding: 0 32px;
@@ -72,7 +75,7 @@ header nav .nav-hamburger button {
   border: 0;
   border-radius: 0;
   padding: 0;
-  background-color: var(--background-color);
+  background-color: transparent;
   color: inherit;
   overflow: initial;
   text-overflow: initial;
@@ -146,11 +149,77 @@ header .nav-brand {
   font-size: var(--heading-font-size-s);
   font-weight: 700;
   line-height: 1;
+  align-self: center;
 }
 
 header nav .nav-brand img {
   width: 128px;
   height: auto;
+}
+
+/* tools */
+header nav .nav-tools {
+  grid-area: tools;
+  align-self: center;
+}
+
+header nav .nav-tools ul {
+  list-style: none;
+  display: flex;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  align-items: center;
+}
+
+header nav .nav-tools .button.primary {
+  background-color: var(--pearson-accent);
+  border-color: var(--pearson-accent);
+  color: var(--text-color);
+  font-weight: 600;
+  border-radius: 20px;
+  padding: 6px 16px;
+  font-size: 12px;
+}
+
+header nav .nav-tools .button.primary:hover {
+  background-color: var(--pearson-accent-hover);
+  border-color: var(--pearson-accent-hover);
+}
+
+header nav .nav-tools .button.secondary {
+  background-color: transparent;
+  border-color: var(--pearson-white);
+  color: var(--pearson-white);
+  font-weight: 600;
+  border-radius: 20px;
+  padding: 6px 16px;
+  font-size: 12px;
+}
+
+header nav .nav-tools .button.secondary:hover {
+  background-color: rgb(255 255 255 / 15%);
+}
+
+header nav .nav-tools .icon {
+  width: 24px;
+  height: 24px;
+}
+
+header nav .nav-tools .icon img {
+  filter: brightness(0) invert(1);
+}
+
+header nav .nav-tools a[aria-label] {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+header nav .nav-tools a[aria-label] svg {
+  display: block;
+  width: 24px;
+  height: 24px;
 }
 
 /* sections */
@@ -170,32 +239,26 @@ header nav[aria-expanded='true'] .nav-sections {
 header nav .nav-sections ul {
   list-style: none;
   padding-left: 0;
-  font-size: var(--body-font-size-s);
+  font-size: 13px;
 }
 
-header nav .nav-sections ul > li {
-  font-weight: 500;
+header nav .nav-sections > .default-content-wrapper > ul > li {
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-size: 12px;
 }
 
-header nav .nav-sections ul > li > ul {
+header nav .nav-sections > .default-content-wrapper > ul > li > ul {
   margin-top: 0;
 }
 
-header nav .nav-sections ul > li > ul > li {
+header nav .nav-sections > .default-content-wrapper > ul > li > ul > li {
   font-weight: 400;
 }
 
 @media (width >= 900px) {
-  header nav .nav-sections {
-    display: block;
-    visibility: visible;
-    white-space: nowrap;
-  }
-
-  header nav[aria-expanded='true'] .nav-sections {
-    align-self: unset;
-  }
-
+  /* dropdown arrow — simple chevron */
   header nav .nav-sections .nav-drop {
     position: relative;
     padding-right: 16px;
@@ -205,68 +268,160 @@ header nav .nav-sections ul > li > ul > li {
   header nav .nav-sections .nav-drop::after {
     content: '';
     display: inline-block;
-    position: absolute;
-    top: 0.5em;
-    right: 2px;
-    transform: rotate(135deg);
-    width: 6px;
-    height: 6px;
-    border: 2px solid currentcolor;
-    border-radius: 0 1px 0 0;
-    border-width: 2px 2px 0 0;
+    width: 5px;
+    height: 5px;
+    border-right: 1.5px solid currentcolor;
+    border-bottom: 1.5px solid currentcolor;
+    transform: rotate(-45deg);
+    margin-left: 6px;
+    vertical-align: middle;
+    position: relative;
+    top: -1px;
   }
 
   header nav .nav-sections .nav-drop[aria-expanded='true']::after {
-    top: unset;
-    bottom: 0.5em;
-    transform: rotate(315deg);
+    transform: rotate(45deg);
+    top: -2px;
   }
 
-  header nav .nav-sections ul {
+  /* active nav item underline pinned to bottom of header */
+  header nav .nav-sections .nav-drop::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 3px;
+    background-color: transparent;
+  }
+
+  header nav .nav-sections .nav-drop[aria-expanded='true']::before {
+    background-color: var(--pearson-accent);
+  }
+
+  header nav .nav-sections {
+    display: flex;
+    visibility: visible;
+    white-space: nowrap;
+    align-self: stretch;
+    align-items: stretch;
+  }
+
+  header nav[aria-expanded='true'] .nav-sections {
+    align-self: stretch;
+  }
+
+  header nav .nav-sections .default-content-wrapper {
+    display: flex;
+    align-items: stretch;
+  }
+
+  header nav .nav-sections > .default-content-wrapper > ul {
     display: flex;
     gap: 24px;
     margin: 0;
+    align-items: stretch;
   }
 
   header nav .nav-sections .default-content-wrapper > ul > li {
     flex: 0 1 auto;
     position: relative;
+    display: flex;
+    align-items: center;
   }
 
+  /* hide dropdown by default */
   header nav .nav-sections .default-content-wrapper > ul > li > ul {
     display: none;
     position: relative;
   }
 
-  header nav .nav-sections .default-content-wrapper > ul > li[aria-expanded='true'] > ul {
-    display: block;
-    position: absolute;
-    left: -24px;
-    width: 200px;
-    top: 150%;
-    padding: 16px;
-    background-color: var(--light-color);
-    white-space: initial;
-  }
-
-  header nav .nav-sections .default-content-wrapper > ul > li > ul::before {
-    content: '';
-    position: absolute;
-    top: -8px;
-    left: 16px;
-    width: 0;
-    height: 0;
-    border-left: 8px solid transparent;
-    border-right: 8px solid transparent;
-    border-bottom: 8px solid var(--light-color);
-  }
-
+  /* mega-menu columns */
   header nav .nav-sections .default-content-wrapper > ul > li > ul > li {
-    padding: 8px 0;
+    flex: 1;
+    min-width: 160px;
+    padding: 0;
+    text-transform: none;
   }
-}
 
-/* tools */
-header nav .nav-tools {
-  grid-area: tools;
+  header nav .nav-sections .default-content-wrapper > ul > li > ul > li > strong {
+    display: block;
+    font-size: 14px;
+    font-weight: 700;
+    color: #1a1a2e;
+    margin-bottom: 12px;
+    letter-spacing: 0;
+  }
+
+  /* sub-links inside mega-menu columns */
+  header nav .nav-sections .default-content-wrapper > ul > li > ul > li > ul {
+    display: block;
+    margin: 0;
+    padding: 0;
+  }
+
+  header nav .nav-sections .default-content-wrapper > ul > li > ul > li > ul > li {
+    padding: 4px 0;
+    text-transform: none;
+    font-weight: 400;
+    letter-spacing: 0;
+  }
+
+  header nav .nav-sections .default-content-wrapper > ul > li > ul > li > ul > li a {
+    color: var(--pearson-card-bg);
+    font-size: 13px;
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+
+  header nav .nav-sections .default-content-wrapper > ul > li > ul > li > ul > li a::after {
+    content: ' >';
+    font-size: 11px;
+    opacity: 0.6;
+  }
+
+  /* mega-menu header row (e.g. "The Pearson Learning Journey") */
+  header nav .nav-sections .default-content-wrapper > ul > li > ul > li.mega-menu-header {
+    flex-basis: 100%;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #e0e0e0;
+  }
+
+  header nav .nav-sections .default-content-wrapper > ul > li > ul > li.mega-menu-header a {
+    color: var(--pearson-card-bg);
+    font-size: 16px;
+    font-weight: 600;
+    text-decoration: none;
+    text-transform: none;
+  }
+
+  header nav .nav-sections .default-content-wrapper > ul > li > ul > li.mega-menu-header a::after {
+    content: ' >';
+  }
+
+  header nav .nav-sections .default-content-wrapper > ul > li > ul > li > ul > li a:hover {
+    color: var(--pearson-hero-bg);
+    text-decoration: underline;
+  }
+
+  /* mega-menu dropdown panel (shown when expanded) */
+  header nav .nav-sections .default-content-wrapper > ul > li[aria-expanded='true'] > ul {
+    display: flex;
+    flex-wrap: wrap;
+    position: fixed;
+    left: 0;
+    right: 0;
+    top: var(--nav-height);
+    width: 100%;
+    max-width: none;
+    padding: 32px 48px;
+    background-color: #fff;
+    border-top: 3px solid var(--pearson-accent);
+    border-bottom: 1px solid #e0e0e0;
+    box-shadow: 0 8px 24px rgb(0 0 0 / 12%);
+    white-space: normal;
+    z-index: 100;
+    gap: 0 40px;
+  }
 }
