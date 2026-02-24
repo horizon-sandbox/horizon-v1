@@ -262,6 +262,13 @@ main > .section.hero-section > div {
 	filter: brightness(0) invert(1);
 }
 
+.hero .hero-search button.is-ai-ready::before {
+	content: '✦';
+	font-size: 18px;
+	line-height: 1;
+	color: #fff;
+}
+
 @media (width >= 900px) {
 	.hero .hero-media video {
 		--hero-video-x-offset: 90%;
