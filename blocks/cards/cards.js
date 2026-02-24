@@ -1,6 +1,11 @@
 import { createOptimizedPicture } from '../../scripts/aem.js';
 
 export default function decorate(block) {
+  const section = block.closest('.section');
+  if (section) {
+    section.classList.add('cards-section');
+  }
+
   /* change to ul, li */
   const ul = document.createElement('ul');
   [...block.children].forEach((row) => {
