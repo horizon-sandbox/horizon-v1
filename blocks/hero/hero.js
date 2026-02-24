@@ -71,12 +71,80 @@ export default function decorate(block) {
         <h1>${title}</h1>
         <p>${subtitle}</p>
         <div class="hero-search">
-          <input type="text" placeholder="${placeholder}" aria-label="Search" />
-          <button type="button" aria-label="Submit search">
-            <img src="/icons/search.svg" alt="" width="18" height="18" loading="lazy" />
-          </button>
+          <div class="hero-search-placeholder">
+            <input type="text" placeholder="${placeholder}" aria-label="Search" />
+            <button type="button" aria-label="Submit search">
+              <img src="/icons/search.svg" alt="" width="18" height="18" loading="lazy" />
+            </button>
+          </div>
         </div>
       </div>
     </div>
   `;
+
+  // Lazy-load Algolia after LCP — does not block page render
+  const staticPlaceholder = block.querySelector('.hero-search-placeholder');
+  const placeholderInput = staticPlaceholder?.querySelector('input');
+  const placeholderBtn = staticPlaceholder?.querySelector('button');
+  const placeholderBtnImg = placeholderBtn?.querySelector('img');
+
+  // Container appended to body so the widget renders in its natural bottom-corner position
+  const chatContainer = document.createElement('div');
+  chatContainer.id = 'hero-algolia-chat';
+  document.body.append(chatContainer);
+
+  function triggerAlgoliaOpen() {
+    // Click the widget's own toggle button so Algolia manages its own open state
+    const widgetBtn = chatContainer.querySelector('button[aria-expanded]');
+    if (widgetBtn && widgetBtn.getAttribute('aria-expanded') !== 'true') widgetBtn.click();
+  }
+
+  if (placeholderInput) placeholderInput.addEventListener('focus', triggerAlgoliaOpen);
+  if (placeholderBtn) placeholderBtn.addEventListener('click', triggerAlgoliaOpen);
+
+  async function initAlgoliaChat() {
+    try {
+      // Load chat CSS
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = 'https://cdn.jsdelivr.net/npm/instantsearch.css/components/chat.css';
+      document.head.append(link);
+
+      // Load Algolia modules from CDN (ESM, no build step needed)
+      const [{ liteClient }, { default: instantsearch }, { chat }] = await Promise.all([
+        // eslint-disable-next-line import/no-unresolved
+        import('https://esm.sh/algoliasearch@5/lite'),
+        // eslint-disable-next-line import/no-unresolved
+        import('https://esm.sh/instantsearch.js'),
+        // eslint-disable-next-line import/no-unresolved
+        import('https://esm.sh/instantsearch.js/es/widgets'),
+      ]);
+
+      const searchClient = liteClient('XFOI9EBBHR', '3b463119b3996ce4822a14242b948870');
+      const searchInstance = instantsearch({ searchClient });
+
+      searchInstance.addWidgets([
+        chat({
+          container: chatContainer,
+          agentId: '8839c362-66e6-4eac-98a1-8fca6e1d1b68',
+        }),
+      ]);
+
+      searchInstance.start();
+
+      // Swap search icon → sparkle once the AI widget is ready
+      if (placeholderBtnImg) placeholderBtnImg.remove();
+      if (placeholderBtn) {
+        placeholderBtn.classList.add('is-ai-ready');
+        placeholderBtn.setAttribute('aria-label', 'Search with Algolia AI');
+      }
+    } catch (e) {
+      // eslint-disable-next-line no-console
+      console.warn('Algolia chat failed to load, keeping static search.', e);
+    }
+  }
+
+  // Load Algolia shortly after LCP — early enough that the icon swap
+  // happens before the user interacts, but non-blocking for render.
+  setTimeout(initAlgoliaChat, 800);
 }
