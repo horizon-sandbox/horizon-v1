@@ -153,25 +153,14 @@ export default function decorate(block) {
 
       // Post-process assistant messages: fetch real product data from Algolia
       // and render rich tiles in place of inline links.
-      const PRODUCT_INDEX = 'live-learner-program-index';
-      const PEARSON_HOST = 'https://www.pearson.com';
-
-      // Extract a readable slug from a Pearson product URL to use as an Algolia query.
-      // e.g. .../p/elements-of-ecology/P200.../978... → "elements of ecology"
-      const queryFromHref = (href, text) => {
-        const match = href.match(/\/p\/([^/]+)\//i);
-        return match ? match[1].replace(/-/g, ' ') : text;
-      };
+      const PRODUCT_INDEX = 'live-en-us-learner-content-index';
 
       const buildProductTile = (href, fallbackText, hit) => {
-        const hitTitle = hit?.name || fallbackText;
-        const raw = hit?.smallThumbnail || '';
-        const image = raw && raw.startsWith('/') ? `${PEARSON_HOST}${raw}` : raw;
-        const author = hit?.authorsAggregated || '';
-        const sym = hit?.currencySymbol || '$';
-        const price = hit?.lowestProgramPriceValue != null
-          ? `from ${sym}${Number(hit.lowestProgramPriceValue).toFixed(2)}/mo` : '';
-        const url = hit?.url || href;
+        const hitTitle = hit?.name || hit?.title || hit?.productName || fallbackText;
+        const image = hit?.image || hit?.cover_image || hit?.thumbnail || hit?.imageUrl || '';
+        const author = hit?.author || hit?.authors || '';
+        const price = hit?.price != null ? `$${Number(hit.price).toFixed(2)}` : '';
+        const url = hit?.url || hit?.productPageUrl || hit?.pdpUrl || href;
         const tile = document.createElement('a');
         tile.className = 'ais-chat-product-tile';
         tile.href = url;
@@ -188,28 +177,22 @@ export default function decorate(block) {
       };
 
       const renderLinksAsTiles = async (messageEl) => {
-        if (messageEl.dataset.tilesRendered) return;
         const anchors = [...messageEl.querySelectorAll('a[href]')];
         if (!anchors.length) return;
-        messageEl.dataset.tilesRendered = '1';
 
         // Insert grid with loading placeholders immediately
         const grid = document.createElement('div');
         grid.className = 'ais-chat-product-tiles';
-        const linkData = anchors.map((anchor) => {
-          const { href } = anchor;
-          const rawText = anchor.textContent.trim();
-          const query = queryFromHref(href, rawText);
-          return { href, text: rawText, query };
-        });
-        linkData.forEach(({ query }) => {
+        const linkData = anchors.map((anchor) => ({
+          href: anchor.href,
+          text: anchor.textContent.trim(),
+        }));
+        linkData.forEach(({ text }) => {
           const loadingTile = document.createElement('div');
           loadingTile.className = 'ais-chat-product-tile ais-chat-product-tile--loading';
-          loadingTile.innerHTML = `
-            <div class="ais-chat-product-tile-image"></div>
-            <div class="ais-chat-product-tile-body">
-              <span class="ais-chat-product-tile-title">${query}</span>
-            </div>`;
+          const body = `<div class="ais-chat-product-tile-body">
+            <span class="ais-chat-product-tile-title">${text}</span></div>`;
+          loadingTile.innerHTML = body;
           grid.append(loadingTile);
         });
         anchors.forEach((anchor) => anchor.remove());
@@ -218,9 +201,9 @@ export default function decorate(block) {
         // Fetch real hits from Algolia in one multi-query call
         try {
           const { results } = await searchClient.search({
-            requests: linkData.map(({ query }) => ({
+            requests: linkData.map(({ text }) => ({
               indexName: PRODUCT_INDEX,
-              query,
+              query: text,
               hitsPerPage: 1,
             })),
           });
@@ -235,34 +218,16 @@ export default function decorate(block) {
         }
       };
 
-      // Watch for new/updated assistant messages and convert inline links to tiles.
-      // Uses a debounce map so each message element is only processed once
-      // streaming has settled (links appear mid-stream as content is added).
-      const pendingMessages = new Map();
+      // Watch for new fully-streamed assistant messages
       const chatObserver = new MutationObserver((mutations) => {
-        const seen = new Set();
         mutations.forEach((mutation) => {
-          // Collect candidate message containers from added nodes and their ancestors
-          const candidates = [];
           mutation.addedNodes.forEach((node) => {
             if (node.nodeType !== 1) return;
-            if (node.classList?.contains('ais-ChatMessage-message')) {
-              candidates.push(node);
-            } else {
-              const parent = node.closest?.('.ais-ChatMessage-message');
-              if (parent) candidates.push(parent);
-              candidates.push(...node.querySelectorAll('.ais-ChatMessage-message'));
-            }
-          });
-          candidates.forEach((el) => {
-            if (seen.has(el)) return;
-            seen.add(el);
-            // Debounce: wait 300 ms after last mutation before processing
-            if (pendingMessages.has(el)) clearTimeout(pendingMessages.get(el));
-            pendingMessages.set(el, setTimeout(() => {
-              pendingMessages.delete(el);
-              renderLinksAsTiles(el);
-            }, 300));
+            // Target assistant message content nodes
+            const msgs = node.classList?.contains('ais-ChatMessage-message')
+              ? [node]
+              : [...node.querySelectorAll('.ais-ChatMessage-message')];
+            msgs.forEach(renderLinksAsTiles);
           });
         });
       });
