@@ -13,10 +13,10 @@ export default function decorate(block) {
     .filter(Boolean);
 
   const [title = '', subtitle = '', placeholder = 'What can I help you find?'] = values;
-  const backgroundVideoSrc = 'https://content.da.live/horizon-sandbox/horizon-v1/content/dam/global/shared/brand/horizon/waves-fucsia-3-pearsonpurple-slow-16x9-l2r-hires-v01.mp4';
+  const backgroundVideoSrc = 'https://content.da.live/horizon-sandbox/horizon-v1/content/dam/global/shared/brand/horizon/video/waves-turquoiseburn-1-light-16x9-l2r.mp4';
   const heroDropdowns = [
     {
-      label: 'By Customer',
+      label: 'Customer',
       items: ['Institution', 'Enterprise', 'Consumer'],
     },
     {
@@ -51,22 +51,21 @@ export default function decorate(block) {
       </video>
       <div class="hero-overlay"></div>
     </div>
-    <div class="hero-shell">
-      <div class="hero-topbar">
-        <div class="hero-brand-links">
-          <a class="hero-logo" href="/" aria-label="Pearson home">
-            <img src="/icons/logo-full-white.svg" alt="Pearson" width="164" height="31" loading="eager" />
-          </a>
-          ${dropdownMarkup}
-        </div>
-        <div class="hero-tools-links">
-          <a class="hero-tool hero-tool-sales" href="/">Contact Sales</a>
-          <a class="hero-tool" href="/">Get Support</a>
-          <a class="hero-tool" href="/">Sign In</a>
-          <a class="hero-tool hero-tool-icon" href="/" aria-label="Cart">🛒</a>
-          <a class="hero-tool hero-tool-icon" href="/" aria-label="Locale">🌐</a>
-        </div>
+    <div class="hero-topbar">
+      <div class="hero-brand-links">
+        <a class="hero-logo" href="/" aria-label="Pearson home">
+          <img src="/icons/pearson-logo-full-purple.svg" alt="Pearson" width="164" height="31" loading="eager" />
+        </a>
+        ${dropdownMarkup}
       </div>
+      <div class="hero-tools-links">
+        <a class="hero-tool hero-tool-sales" href="/">Contact Sales</a>
+        <a class="hero-tool hero-tool-signin" href="/">Sign In</a>
+        <a class="hero-tool hero-tool-icon hero-tool-support" href="/" aria-label="Get Support"></a>
+        <a class="hero-tool hero-tool-icon hero-tool-cart" href="/" aria-label="Cart"></a>
+      </div>
+    </div>
+    <div class="hero-shell">
       <div class="hero-content">
         <h1>${title}</h1>
         <p>${subtitle}</p>
@@ -104,10 +103,10 @@ export default function decorate(block) {
 
   async function initAlgoliaChat() {
     try {
-      // Load chat CSS
+      // Load chat CSS (full satellite theme for complete widget + item card styles)
       const link = document.createElement('link');
       link.rel = 'stylesheet';
-      link.href = 'https://cdn.jsdelivr.net/npm/instantsearch.css/components/chat.css';
+      link.href = 'https://cdn.jsdelivr.net/npm/instantsearch.css@8/themes/satellite-min.css';
       document.head.append(link);
 
       // Load Algolia modules from CDN (ESM, no build step needed)
@@ -127,13 +126,32 @@ export default function decorate(block) {
         chat({
           container: chatContainer,
           agentId: '8839c362-66e6-4eac-98a1-8fca6e1d1b68',
+          templates: {
+            item(hit, { html }) {
+              const hitTitle = hit.name || hit.title || hit.productName || hit.objectID;
+              const image = hit.image || hit.cover_image || hit.thumbnail || hit.imageUrl;
+              const author = hit.author || hit.authors || '';
+              const url = hit.url || hit.productPageUrl || hit.pdpUrl || `#${hit.objectID}`;
+              const price = hit.price != null ? `$${Number(hit.price).toFixed(2)}` : '';
+              return html`
+                <a class="ais-Chat-item-card" href="${url}" target="_blank" rel="noopener">
+                  ${image ? html`<img class="ais-Chat-item-card-image" src="${image}" alt="${hitTitle}" />` : ''}
+                  <div class="ais-Chat-item-card-body">
+                    <p class="ais-Chat-item-card-title">${hitTitle}</p>
+                    ${author ? html`<p class="ais-Chat-item-card-author">${author}</p>` : ''}
+                    ${price ? html`<p class="ais-Chat-item-card-price">${price}</p>` : ''}
+                  </div>
+                </a>
+              `;
+            },
+          },
         }),
       ]);
 
       searchInstance.start();
 
-      // Swap search icon → sparkle once the AI widget is ready
-      if (placeholderBtnImg) placeholderBtnImg.remove();
+      // Swap search icon → AI icon once the widget is ready
+      if (placeholderBtnImg) placeholderBtnImg.setAttribute('src', '/icons/ai-search.svg');
       if (placeholderBtn) {
         placeholderBtn.classList.add('is-ai-ready');
         placeholderBtn.setAttribute('aria-label', 'Search with Algolia AI');
