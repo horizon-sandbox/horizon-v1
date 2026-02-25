@@ -205,28 +205,17 @@ export function getAccessToken() {
 }
 
 /**
- * Log out: clear session storage and (optionally) redirect to IES end-session.
+ * Log out: clear local session and reload the page.
+ * IES end-session is skipped because the post_logout_redirect_uri
+ * must also be whitelisted separately; for production, add
+ * window.location.origin to the IES post-logout allowlist and
+ * uncomment the endSession redirect below.
  */
 export function logout() {
-  const tokens = sessionStorage.getItem(STORAGE_KEY_TOKENS);
   sessionStorage.removeItem(STORAGE_KEY_TOKENS);
   sessionStorage.removeItem(STORAGE_KEY_USER);
   sessionStorage.removeItem(STORAGE_KEY_VERIFIER);
   sessionStorage.removeItem(STORAGE_KEY_STATE);
-
-  if (tokens) {
-    try {
-      const { id_token: idToken } = JSON.parse(tokens);
-      if (idToken) {
-        const endSessionUrl = new URL(iesUrl(`${IES_REALM}/connect/endSession`));
-        endSessionUrl.searchParams.set('id_token_hint', idToken);
-        endSessionUrl.searchParams.set('post_logout_redirect_uri', window.location.origin);
-        window.location.href = endSessionUrl.toString();
-        return;
-      }
-    } catch { /* fall through */ }
-  }
-
   window.location.reload();
 }
 
