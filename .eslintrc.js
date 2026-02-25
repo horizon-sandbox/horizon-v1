@@ -4,6 +4,7 @@ module.exports = {
   env: {
     browser: true,
   },
+  ignorePatterns: ['local-proxy.js'],
   parser: '@babel/eslint-parser',
   parserOptions: {
     allowImportExportEverywhere: true,

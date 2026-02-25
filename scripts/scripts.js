@@ -11,6 +11,7 @@ import {
   loadSections,
   loadCSS,
 } from './aem.js';
+import { isCallbackPage, handleCallback } from './ies-auth.js';
 
 /**
  * Builds hero block and prepends to main in a new section.
@@ -181,6 +182,17 @@ function loadDelayed() {
 }
 
 async function loadPage() {
+  // Handle OAuth callback before rendering the page
+  if (isCallbackPage()) {
+    const user = await handleCallback();
+    const referrer = sessionStorage.getItem('ies_login_referrer') || '/';
+    sessionStorage.removeItem('ies_login_referrer');
+    if (user) {
+      window.location.replace(referrer);
+      return;
+    }
+  }
+
   await loadEager(document);
   await loadLazy(document);
   loadDelayed();
