@@ -37,6 +37,8 @@ main > .section.cards-container > div {
   border-radius: var(--corners-card);
   background: var(--color--text-brand-04, #d6d5fb);
   color: var(--color--text-brand-01);
+  display: flex;
+  flex-direction: column;
 }
 
 .cards .cards-card-body {
@@ -44,6 +46,7 @@ main > .section.cards-container > div {
   display: flex;
   flex-direction: column;
   gap: var(--space--x2);
+  flex: 1 1 auto;
 }
 
 .cards .cards-card-body > p:first-child {
