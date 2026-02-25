@@ -134,13 +134,14 @@ export default function decorate(block) {
               const url = hit.url || hit.productPageUrl || hit.pdpUrl || `#${hit.objectID}`;
               const price = hit.price != null ? `$${Number(hit.price).toFixed(2)}` : '';
               return html`
-                <a class="ais-Chat-item-card" href="${url}" target="_blank" rel="noopener">
-                  ${image ? html`<img class="ais-Chat-item-card-image" src="${image}" alt="${hitTitle}" />` : ''}
-                  <div class="ais-Chat-item-card-body">
-                    <p class="ais-Chat-item-card-title">${hitTitle}</p>
-                    ${author ? html`<p class="ais-Chat-item-card-author">${author}</p>` : ''}
-                    ${price ? html`<p class="ais-Chat-item-card-price">${price}</p>` : ''}
-                  </div>
+                <a class="ais-Carousel-hit-link" href="${url}" target="_blank" rel="noopener">
+                  ${image ? html`
+                    <div class="ais-Carousel-hit-image">
+                      <img src="${image}" alt="${hitTitle}" loading="lazy" />
+                    </div>` : ''}
+                  <span class="ais-Carousel-hit-title">${hitTitle}</span>
+                  ${author ? html`<p class="ais-Carousel-hit-subtitle">${author}</p>` : ''}
+                  ${price ? html`<p class="ais-Carousel-hit-price">${price}</p>` : ''}
                 </a>
               `;
             },
@@ -149,6 +150,88 @@ export default function decorate(block) {
       ]);
 
       searchInstance.start();
+
+      // Post-process assistant messages: fetch real product data from Algolia
+      // and render rich tiles in place of inline links.
+      const PRODUCT_INDEX = 'live-en-us-learner-content-index';
+
+      const buildProductTile = (href, fallbackText, hit) => {
+        const hitTitle = hit?.name || hit?.title || hit?.productName || fallbackText;
+        const image = hit?.image || hit?.cover_image || hit?.thumbnail || hit?.imageUrl || '';
+        const author = hit?.author || hit?.authors || '';
+        const price = hit?.price != null ? `$${Number(hit.price).toFixed(2)}` : '';
+        const url = hit?.url || hit?.productPageUrl || hit?.pdpUrl || href;
+        const tile = document.createElement('a');
+        tile.className = 'ais-chat-product-tile';
+        tile.href = url;
+        tile.target = '_blank';
+        tile.rel = 'noopener';
+        tile.innerHTML = `
+          ${image ? `<div class="ais-chat-product-tile-image"><img src="${image}" alt="${hitTitle}" loading="lazy" /></div>` : ''}
+          <div class="ais-chat-product-tile-body">
+            <span class="ais-chat-product-tile-title">${hitTitle}</span>
+            ${author ? `<span class="ais-chat-product-tile-author">${author}</span>` : ''}
+            ${price ? `<span class="ais-chat-product-tile-price">${price}</span>` : ''}
+          </div>`;
+        return tile;
+      };
+
+      const renderLinksAsTiles = async (messageEl) => {
+        const anchors = [...messageEl.querySelectorAll('a[href]')];
+        if (!anchors.length) return;
+
+        // Insert grid with loading placeholders immediately
+        const grid = document.createElement('div');
+        grid.className = 'ais-chat-product-tiles';
+        const linkData = anchors.map((anchor) => ({
+          href: anchor.href,
+          text: anchor.textContent.trim(),
+        }));
+        linkData.forEach(({ text }) => {
+          const loadingTile = document.createElement('div');
+          loadingTile.className = 'ais-chat-product-tile ais-chat-product-tile--loading';
+          const body = `<div class="ais-chat-product-tile-body">
+            <span class="ais-chat-product-tile-title">${text}</span></div>`;
+          loadingTile.innerHTML = body;
+          grid.append(loadingTile);
+        });
+        anchors.forEach((anchor) => anchor.remove());
+        messageEl.append(grid);
+
+        // Fetch real hits from Algolia in one multi-query call
+        try {
+          const { results } = await searchClient.search({
+            requests: linkData.map(({ text }) => ({
+              indexName: PRODUCT_INDEX,
+              query: text,
+              hitsPerPage: 1,
+            })),
+          });
+          linkData.forEach(({ href, text }, i) => {
+            const hit = results[i]?.hits?.[0];
+            const tile = buildProductTile(href, text, hit || {});
+            grid.replaceChild(tile, grid.children[i]);
+          });
+        } catch (fetchErr) {
+          // eslint-disable-next-line no-console
+          console.warn('Product tile fetch failed, showing text fallback.', fetchErr);
+        }
+      };
+
+      // Watch for new fully-streamed assistant messages
+      const chatObserver = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+          mutation.addedNodes.forEach((node) => {
+            if (node.nodeType !== 1) return;
+            // Target assistant message content nodes
+            const msgs = node.classList?.contains('ais-ChatMessage-message')
+              ? [node]
+              : [...node.querySelectorAll('.ais-ChatMessage-message')];
+            msgs.forEach(renderLinksAsTiles);
+          });
+        });
+      });
+      chatObserver.observe(chatContainer, { childList: true, subtree: true });
 
       // Swap search icon → AI icon once the widget is ready
       if (placeholderBtnImg) placeholderBtnImg.setAttribute('src', '/icons/ai-search.svg');
