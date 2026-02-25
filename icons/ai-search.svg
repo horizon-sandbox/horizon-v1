@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+  <!-- Magnifying glass arc: clockwise from ~45° to ~-30°, large arc (most of circle) -->
+  <path d="M13.2 14.2 A6 6 0 1 1 14.2 7" stroke="#1b1464" stroke-width="2.8" stroke-linecap="round" fill="none"/>
+  <!-- Handle extending 45° from the arc start -->
+  <line x1="13.2" y1="14.2" x2="18.5" y2="19.5" stroke="#1b1464" stroke-width="2.8" stroke-linecap="round"/>
+  <!-- 4-pointed sparkle: balanced arms (±3.5 horiz, ±3.6 vert), wider waist for thickness -->
+  <path d="M15.5 7L17 9.1L19 10.6L17 12.1L15.5 14.2L14 12.1L12 10.6L14 9.1Z" fill="#1b1464"/>
+</svg>
