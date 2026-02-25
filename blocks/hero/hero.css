@@ -210,10 +210,32 @@ main > .section.hero-section > div {
 	background: var(--color--interactive-primary, #512eab);
 	border: 1px solid transparent;
 	color: #fff;
+	cursor: pointer;
+	font-family: inherit;
 }
 
 .hero .hero-tools-links .hero-tool-signin:hover {
 	filter: brightness(1.1);
+}
+
+/* Sign Out — outlined */
+.hero .hero-tools-links .hero-tool-signout {
+	background: transparent;
+	border: 1px solid var(--color--text-tertiary, #ccc);
+	color: var(--color--text-tertiary);
+	cursor: pointer;
+	font-family: inherit;
+}
+
+.hero .hero-tools-links .hero-tool-signout:hover {
+	filter: brightness(1.1);
+}
+
+.hero .hero-tools-links .hero-user-greeting {
+	color: var(--color--text-brand-01);
+	font-size: var(--typesize-minor);
+	font-weight: var(--typeweight--semibold);
+	white-space: nowrap;
 }
 
 /* Icon-only buttons — 24px mask-image */

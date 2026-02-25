@@ -1,3 +1,5 @@
+import { login, logout, getUser } from '../../scripts/ies-auth.js';
+
 export default function decorate(block) {
   document.body.style.overflowY = '';
   document.documentElement.style.overflowY = '';
@@ -60,7 +62,15 @@ export default function decorate(block) {
       </div>
       <div class="hero-tools-links">
         <a class="hero-tool hero-tool-sales" href="/">Contact Sales</a>
-        <a class="hero-tool hero-tool-signin" href="/">Sign In</a>
+        ${(() => {
+    const user = getUser();
+    if (user) {
+      return `
+            <span class="hero-tool hero-user-greeting">Hi, ${user.firstName || user.email}</span>
+            <button class="hero-tool hero-tool-signout" type="button">Sign Out</button>`;
+    }
+    return '<button class="hero-tool hero-tool-signin" type="button">Sign In</button>';
+  })()}
         <a class="hero-tool hero-tool-icon hero-tool-support" href="/" aria-label="Get Support"></a>
         <a class="hero-tool hero-tool-icon hero-tool-cart" href="/" aria-label="Cart"></a>
       </div>
@@ -80,6 +90,22 @@ export default function decorate(block) {
       </div>
     </div>
   `;
+
+  // Auth button handlers
+  const signinBtn = block.querySelector('.hero-tool-signin');
+  if (signinBtn) {
+    signinBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      login();
+    });
+  }
+  const signoutBtn = block.querySelector('.hero-tool-signout');
+  if (signoutBtn) {
+    signoutBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      logout();
+    });
+  }
 
   // Lazy-load Algolia after LCP — does not block page render
   const staticPlaceholder = block.querySelector('.hero-search-placeholder');
