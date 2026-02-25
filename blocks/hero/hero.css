@@ -435,6 +435,7 @@ main > .section.hero-section > div {
 	justify-content: center;
 }
 
+/* stylelint-disable-next-line no-descending-specificity */
 .hero .ais-chat-product-tile-image img {
 	width: 100%;
 	height: 100%;
