@@ -1,0 +1,26 @@
+{
+	"servers": {
+		"figma": {
+			"type": "http",
+			"url": "http://127.0.0.1:3845/sse"
+		},
+		"Google Chrome DevTools": {
+			"command": "npx",
+			"args": [
+				"-y",
+				"chrome-devtools-mcp@latest"
+			]
+		},
+		"atlassian": {
+			"type": "http",
+			"url": "https://mcp.atlassian.com/v1/sse",
+			"gallery": true
+		},
+		"algolia": {
+			"type": "http",
+			"url": "https://mcp.us.algolia.com/1/-VOR5t-pQ0Gf3_pw9QmZ2g/mcp",
+			"gallery": true
+		}
+	},
+	"inputs": []
+}

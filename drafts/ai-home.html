@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>AI Home Draft</title>
+    <link rel="stylesheet" href="https://www.pearson.com/etc/clientlibs/one-dot-com/one-dot-com/master-tokens/evolution/css/tokens.css" />
+    <link rel="stylesheet" href="https://www.pearson.com/etc/clientlibs/one-dot-com/one-dot-com/evolution-tokens/css/evolution-tokens.css" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800" />
+    <link rel="stylesheet" href="/styles/styles.css" />
+    <script type="module" src="/scripts/scripts.js"></script>
+    <style>
+      :root {
+        --pearson-color-ui-background-brand-04: var(--color--ui-background-brand-04, #edecf6);
+        --pearson-color-text-brand-01: var(--color--text-brand-01, #0d004d);
+        --pearson-color-text-primary: var(--color--text-primary, #060609);
+        --pearson-color-text-secondary: var(--color--text-secondary, #333);
+        --pearson-color-text-quaternary: var(--color--text-quaternary, #6d6886);
+        --pearson-color-text-link: var(--color--text-link, #512eab);
+        --pearson-color-text-primary-inverse: var(--color--text-primary-inverse, #fff);
+        --pearson-color-text-brand-04: var(--color--text-brand-04, #d6d5fb);
+        --pearson-color-ui-border-03: var(--color--ui-border-03, #512eab);
+        --pearson-color-ui-field: var(--color--ui-field, #fff);
+        --pearson-color-ui-background-dark: var(--color--ui-background-dark, #0d004d);
+        --pearson-color-icon-accent-02-primary: var(--color--icon-accent-02-primary, #ffce00);
+        --pearson-color-interactive-primary: var(--color--interactive-primary, #512eab);
+        --pearson-border-x1: var(--border--x1, 1px);
+      }
+
+      body.ai-home-preview {
+        margin: 0;
+        width: 100%;
+        min-width: 0;
+        --ai-home-gutter: 24px;
+        background: var(--color--ui-background-brand-04, #edecf6);
+        color: var(--color--text-primary, #060609);
+        font-family: 'Plus Jakarta Sans', Helvetica, Verdana, sans-serif;
+        position: relative;
+      }
+
+      body.ai-home-preview .ai-home-bg-media {
+        position: fixed;
+        inset: 0;
+        z-index: 0;
+        pointer-events: none;
+        overflow: hidden;
+      }
+
+      body.ai-home-preview .ai-home-bg-video,
+      body.ai-home-preview .ai-home-bg-fallback {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: 68% center;
+        mix-blend-mode: color-burn;
+        opacity: 0.76;
+      }
+
+      body.ai-home-preview .ai-home-bg-video {
+        z-index: 1;
+      }
+
+      body.ai-home-preview .ai-home-bg-fallback {
+        z-index: 0;
+        opacity: 0.36;
+      }
+
+      body.ai-home-preview header,
+      body.ai-home-preview main {
+        position: relative;
+        z-index: 1;
+      }
+
+
+      body.ai-home-preview main > .section {
+        margin: 0;
+      }
+
+      body.ai-home-preview main > .section > div {
+        box-sizing: border-box;
+        width: 100%;
+        position: relative;
+        overflow: visible;
+        max-width: none;
+        margin: 0 auto;
+        padding: 0 var(--ai-home-gutter);
+        background: transparent;
+      }
+
+      body.ai-home-preview main > .section > div > * {
+        position: relative;
+        z-index: 1;
+      }
+
+      body.ai-home-preview .section.hero-search-has-shared-background::before {
+        display: none;
+      }
+
+      body.ai-home-preview .hero-search,
+      body.ai-home-preview .promo-cards {
+        max-width: none;
+        margin-inline: auto;
+      }
+
+      body.ai-home-preview .promo-cards .promo-cards-viewport {
+        padding-inline: 0;
+      }
+
+      body.ai-home-preview .hero-search {
+        border-radius: 0;
+        min-height: auto;
+        padding: 80px 0 0;
+      }
+
+      body.ai-home-preview .hero-search .hero-search-background {
+        display: none;
+      }
+
+      body.ai-home-preview .hero-search .hero-search-content {
+        max-width: none;
+      }
+
+      body.ai-home-preview .hero-search .hero-search-subtitle {
+        max-width: 20ch;
+      }
+
+      body.ai-home-preview .promo-cards {
+        margin-top: 20px;
+      }
+
+      body.ai-home-preview .promo-cards .promo-card {
+        min-height: 258px;
+      }
+
+      @media (width >= 900px) {
+        body.ai-home-preview {
+          --ai-home-gutter: 72px;
+        }
+
+        body.ai-home-preview .hero-search {
+          padding: 88px 0 0;
+        }
+
+        body.ai-home-preview .hero-search .hero-search-title {
+          font-size: 56px;
+        }
+
+        body.ai-home-preview .hero-search .hero-search-subtitle {
+          max-width: 420px;
+          font-size: 24px;
+          line-height: 1.4;
+        }
+
+        body.ai-home-preview .hero-search .hero-search-form {
+          margin-top: 36px;
+        }
+      }
+
+      @media (width < 900px) {
+        body.ai-home-preview {
+          --ai-home-gutter: 24px;
+        }
+      }
+    </style>
+  </head>
+  <body class="ai-home-preview search-page">
+    <div class="ai-home-bg-media" aria-hidden="true">
+      <video class="ai-home-bg-video" autoplay muted loop playsinline poster="http://localhost:3845/assets/4b60a8f72d832a52e6defb38eb2d36ac1fef273c.png">
+        <source src="https://content.da.live/horizon-sandbox/horizon-v1/content/dam/global/shared/brand/horizon/video/waves-turquoiseburn-1-light-16x9-l2r.mp4" type="video/mp4" />
+      </video>
+      <img class="ai-home-bg-fallback" src="http://localhost:3845/assets/eefb2c53879f40e5a9cc08ba1d7365dac4a85c09.png" alt="" />
+    </div>
+    <header></header>
+    <main>
+      <div>
+        <div class="hero-search">
+          <div>
+            <div></div>
+            <div><h1>What can we help you find?</h1></div>
+            <div><p>Explore learning for every stage of life with Pearson.</p></div>
+          </div>
+          <div>
+            <div>Search products, orders, or ask a question...</div>
+          </div>
+          <div>
+            <div>
+              <picture>
+                <img src="http://localhost:3845/assets/eefb2c53879f40e5a9cc08ba1d7365dac4a85c09.png" alt="Abstract background" />
+              </picture>
+            </div>
+          </div>
+          <div>
+            <div>/drafts/search.html</div>
+          </div>
+        
+        </div>
+        <div class="promo-cards">
+          <div>
+            <div>options: showDots=true</div>
+          </div>
+          <div>
+            <div>EDUCATION: LEARN</div>
+            <div>Spark Your Curiosity</div>
+            <div>Igniting curiosity, building knowledge, and growing with confidence through compelling courseware and formative assessments.</div>
+            <div><a href="/">Explore learn offerings</a></div>
+          </div>
+          <div>
+            <div>EDUCATION: PROGRESS</div>
+            <div>Recognizing Success</div>
+            <div>Celebrating growth and proving achievements with trusted assessments.</div>
+            <div><a href="/">Explore progress offerings</a></div>
+          </div>
+          <div>
+            <div>EDUCATION: CAREER READY</div>
+            <div>Empowering Futures</div>
+            <div>Opening doors to careers through practical skills and workplace readiness.</div>
+            <div><a href="/">Explore career ready offerings</a></div>
+          </div>
+          <div>
+            <div>EDUCATION: LANGUAGE LEARNING</div>
+            <div>Build Communication Skills</div>
+            <div>Support confident communication with practical language tools for learners at every level.</div>
+            <div><a href="/">Explore language offerings</a></div>
+          </div>
+          <div>
+            <div>EDUCATION: TEST PREP</div>
+            <div>Prepare with Confidence</div>
+            <div>Get exam-ready with trusted practice resources, progress checks, and personalized support.</div>
+            <div><a href="/">Explore test prep offerings</a></div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </body>
+</html>

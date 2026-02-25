@@ -4,6 +4,67 @@ import { loadFragment } from '../fragment/fragment.js';
 // media query match that indicates mobile/tablet width
 const isDesktop = window.matchMedia('(min-width: 900px)');
 
+function applySearchPageHeaderVariant(nav) {
+  if (!document.body.classList.contains('search-page')) return;
+
+  const navBrand = nav.querySelector('.nav-brand');
+  if (navBrand) {
+    const link = navBrand.querySelector('a') || document.createElement('a');
+    link.href = '/';
+    link.setAttribute('aria-label', 'Pearson home');
+    link.innerHTML = '<img src="https://www.pearson.com/content/dam/global/shared/brand/evolution/logos/logo-full-purple.svg" alt="Pearson" loading="eager">';
+    if (!link.parentElement) {
+      navBrand.textContent = '';
+      navBrand.append(link);
+    }
+  }
+
+  const sectionLinkWrappers = nav.querySelectorAll('.nav-sections .default-content-wrapper > ul > li > p');
+  sectionLinkWrappers.forEach((wrapper) => {
+    if (wrapper.classList.contains('button-wrapper')) wrapper.className = '';
+  });
+
+  const sectionLinks = nav.querySelectorAll('.nav-sections .default-content-wrapper > ul > li > p > a');
+  sectionLinks.forEach((link) => {
+    if (link.classList.contains('button')) link.className = '';
+    if (/\bby\s+customer\b/i.test(link.textContent)) {
+      link.textContent = 'Customer';
+      link.setAttribute('aria-label', 'Customer');
+    }
+  });
+
+  const toolsList = nav.querySelector('.nav-tools .default-content-wrapper > ul');
+  if (!toolsList) return;
+
+  [...toolsList.children].forEach((item) => {
+    const text = item.textContent.trim().toLowerCase();
+    if (text.includes('get support')) item.remove();
+  });
+
+  [...toolsList.children].forEach((item) => {
+    const link = item.querySelector('a');
+    const wrapper = item.querySelector('p');
+    if (wrapper && wrapper.classList.contains('button-wrapper')) wrapper.className = '';
+    if (!link) return;
+    if (link.classList.contains('button')) link.className = '';
+    const text = link.textContent.trim().toLowerCase();
+    item.classList.remove('nav-tool-contact', 'nav-tool-signin');
+    if (text.includes('contact sales')) item.classList.add('nav-tool-contact');
+    if (text === 'sign in') item.classList.add('nav-tool-signin');
+  });
+
+  const ensureToolIcon = (key, href, iconPath, ariaLabel) => {
+    if (toolsList.querySelector(`.nav-tool-icon-${key}`)) return;
+    const item = document.createElement('li');
+    item.className = `nav-tool-icon nav-tool-icon-${key}`;
+    item.innerHTML = `<a href="${href}" aria-label="${ariaLabel}"><img src="${iconPath}" alt="" aria-hidden="true" loading="lazy"></a>`;
+    toolsList.append(item);
+  };
+
+  ensureToolIcon('help', '/get-support', '/icons/ai-home/help.svg', 'Get support');
+  ensureToolIcon('cart', '/cart', '/icons/ai-home/cart.svg', 'View cart');
+}
+
 function closeOnEscape(e) {
   if (e.code === 'Escape') {
     const nav = document.getElementById('nav');
@@ -150,6 +211,8 @@ export default async function decorate(block) {
       });
     });
   }
+
+  applySearchPageHeaderVariant(nav);
 
   // hamburger for mobile
   const hamburger = document.createElement('div');

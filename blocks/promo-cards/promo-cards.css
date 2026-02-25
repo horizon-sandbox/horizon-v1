@@ -1,0 +1,159 @@
+.promo-cards {
+  --promo-cards-gap: 20px;
+  --promo-cards-per-view: 3;
+
+  margin-top: 16px;
+}
+
+.promo-cards .promo-cards-viewport {
+  overflow: auto hidden;
+  scroll-behavior: smooth;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  padding: 0 24px;
+}
+
+body.search-page .promo-cards .promo-cards-viewport {
+  padding-inline: 0;
+}
+
+.promo-cards .promo-cards-viewport::-webkit-scrollbar {
+  display: none;
+}
+
+.promo-cards .promo-cards-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  gap: var(--promo-cards-gap);
+}
+
+.promo-cards .promo-cards-item {
+  min-width: 0;
+  flex: 0 0 calc((100% - (var(--promo-cards-gap) * (var(--promo-cards-per-view) - 1))) / var(--promo-cards-per-view));
+  scroll-snap-align: start;
+}
+
+.promo-cards .promo-card {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  border-radius: 24px;
+  background: var(--pearson-color-text-brand-04, #d6d5fb);
+  padding: 24px;
+  color: var(--pearson-color-text-primary, #060609);
+}
+
+.promo-cards .promo-card-label {
+  margin: 0;
+  color: var(--pearson-color-text-brand-01, #0d004d);
+  font-family: 'Plus Jakarta Sans', Helvetica, Verdana, sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.promo-cards .promo-card-title {
+  margin: 8px 0 0;
+  color: var(--pearson-color-text-primary, #060609);
+  font-family: 'Plus Jakarta Sans', Helvetica, Verdana, sans-serif;
+  font-size: 24px;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.promo-cards .promo-card-description {
+  margin: 16px 0 0;
+  color: var(--pearson-color-text-secondary, #333);
+  font-family: 'Plus Jakarta Sans', Helvetica, Verdana, sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.6;
+}
+
+.promo-cards .promo-card-cta {
+  margin: 24px 0 0;
+}
+
+.promo-cards .promo-card-link:any-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--pearson-color-text-link, #512eab);
+  font-family: 'Plus Jakarta Sans', Helvetica, Verdana, sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.6;
+}
+
+.promo-cards .promo-card-link:any-link::after {
+  content: '';
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  background: center / contain no-repeat url('/icons/ai-home/nav-next.svg');
+}
+
+.promo-cards .promo-cards-dots {
+  list-style: none;
+  margin: 24px 0 0;
+  padding: 0;
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+}
+
+.promo-cards .promo-cards-dot {
+  border: 1px solid var(--pearson-color-interactive-secondary-inverse, #fff);
+  background: var(--pearson-color-ui-background-dark, #0d004d);
+  border-radius: 999px;
+  width: 16px;
+  height: 16px;
+  padding: 0;
+  cursor: pointer;
+}
+
+.promo-cards .promo-cards-dot.is-active {
+  background: var(--pearson-color-icon-accent-02-primary, #ffce00);
+  border-color: var(--pearson-color-text-brand-01, #0d004d);
+}
+
+@media (width >= 600px) {
+  .promo-cards .promo-cards-list {
+    gap: 24px;
+  }
+}
+
+@media (width >= 900px) {
+  .promo-cards {
+    --promo-cards-gap: 40px;
+
+    margin-top: -64px;
+  }
+
+  body.search-page .promo-cards {
+    margin-top: 72px;
+  }
+
+  .promo-cards .promo-cards-list {
+    gap: 40px;
+  }
+
+  .promo-cards .promo-cards-viewport {
+    padding: 0 64px;
+  }
+
+  body.search-page .promo-cards .promo-cards-viewport {
+    padding-inline: 0;
+  }
+
+  .promo-cards .promo-card {
+    height: 322px;
+    padding: 32px;
+  }
+
+}
