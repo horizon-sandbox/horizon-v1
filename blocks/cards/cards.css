@@ -20,26 +20,71 @@ main > .section.cards-container > div {
   transform: translateY(-260px);
   max-width: none;
   margin: 0;
-  padding: 0 64px;
+  padding: 0 24px;
 }
+
+/* ─── Carousel: mobile & tablet ─── */
 
 .cards > ul {
   list-style: none;
   margin: 0;
   padding: 0;
-  display: grid;
-  grid-template-columns: 1fr;
+  display: flex;
+  flex-direction: row;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
   gap: var(--space--x10);
+  scroll-marker-group: after;
 }
 
+.cards > ul::-webkit-scrollbar {
+  display: none;
+}
+
+/* Mobile: 1 card fills the full viewport width */
 .cards > ul > li {
+  flex: 0 0 100%;
+  scroll-snap-align: start;
   border: 0;
   border-radius: var(--corners-card);
-  background: var(--color--text-brand-04, #d6d5fb);
+  background: var(--color--text-brand-04);
   color: var(--color--text-brand-01);
   display: flex;
   flex-direction: column;
 }
+
+/* ─── Pagination dots ─── */
+
+.cards > ul::scroll-marker-group {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: var(--space--x5);
+  padding-top: 20px;
+}
+
+.cards > ul > li::scroll-marker {
+  content: '';
+  display: block;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--color--text-brand-01);
+  border: 1px solid var(--color--icon-secondary-inverse);
+  box-sizing: border-box;
+  cursor: pointer;
+}
+
+/* stylelint-disable-next-line selector-pseudo-class-no-unknown */
+.cards > ul > li::scroll-marker:target-current {
+  background: var(--color--interactive-action-active);
+  border-color: var(--color--text-brand-01);
+}
+
+/* ─── Card body ─── */
 
 .cards .cards-card-body {
   padding: var(--space--x8);
@@ -107,6 +152,26 @@ main > .section.cards-container > div {
   text-decoration: underline;
 }
 
+/* ─── Tablet: 2 cards visible ─── */
+
+@media (600px <= width < 900px) {
+  .cards > ul > li {
+    /* Each card = (100% - 1 gap) / 2 */
+    flex: 0 0 calc(50% - (var(--space--x10) / 2));
+  }
+
+  /* Last card is always visible when the previous card is snapped — not a snap target */
+  .cards > ul > li:last-child {
+    scroll-snap-align: none;
+  }
+
+  .cards > ul > li:last-child::scroll-marker {
+    content: none;
+  }
+}
+
+/* ─── Desktop: 3-column grid, carousel disabled ─── */
+
 @media (width >= 900px) {
   main > .section.cards-section,
   main > .section.cards-container {
@@ -121,8 +186,17 @@ main > .section.cards-container > div {
   }
 
   .cards > ul {
+    display: grid;
     grid-template-columns: repeat(3, 1fr);
+    overflow-x: visible;
+    scroll-snap-type: none;
+    scroll-marker-group: none;
     gap: var(--space--x10);
+  }
+
+  .cards > ul > li {
+    flex: initial;
+    scroll-snap-align: none;
   }
 }
 
