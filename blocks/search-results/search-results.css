@@ -1,5 +1,5 @@
 main > .section.search-results-section {
-  margin: 0;
+  margin: calc(-1 * var(--nav-height)) 0 0;
 }
 
 main > .section.search-results-section > div {
@@ -11,7 +11,7 @@ main > .section.search-results-section > div {
   position: relative;
   box-sizing: border-box;
   background: var(--pearson-color-ui-background-brand-04, #edecf6);
-  padding: 0;
+  padding: var(--nav-height) 0 0;
 }
 
 .search-results .search-results-media {
@@ -38,7 +38,7 @@ main > .section.search-results-section > div {
   display: flex;
   flex-direction: column;
   gap: 0;
-  padding: 24px var(--space--x31, 124px);
+  padding: 48px var(--space--x31, 124px) 24px;
 }
 
 .search-results .search-results-main-content {
@@ -54,6 +54,11 @@ main > .section.search-results-section > div {
   font-size: 40px;
   font-weight: 700;
   line-height: 1.2;
+  visibility: hidden;
+}
+
+.search-results .search-results-searchbox {
+  width: 100%;
 }
 
 .search-results .search-results-search-row {
@@ -66,14 +71,6 @@ main > .section.search-results-section > div {
   flex: 1;
   min-width: 0;
   width: auto;
-}
-
-.search-results .search-results-search-row .search-results-chatbot-trigger {
-  flex-shrink: 0;
-}
-
-.search-results .search-results-searchbox {
-  width: 100%;
 }
 
 .search-results .search-results-searchbox [class~='ais-SearchBox'] {
@@ -161,10 +158,29 @@ main > .section.search-results-section > div {
   filter: brightness(0) invert(1);
 }
 
+/* When chatbot is open: gradient border + white fill, icon in natural color */
+.search-results-main-content:has(.search-results-chatbot.is-open) [class~='ais-SearchBox-submit'] {
+  border: 3px solid transparent;
+  background:
+    linear-gradient(#fff, #fff) padding-box,
+    conic-gradient(from 225deg, var(--color--icon-accent-01-primary, #df41cf), var(--color--icon-brand-02, #512eab), var(--color--icon-accent-02-primary, #ffce00), var(--color--icon-accent-01-primary, #df41cf)) border-box;
+}
+
+.search-results-main-content:has(.search-results-chatbot.is-open) [class~='ais-SearchBox-submit']::before {
+  display: none;
+}
+
+.search-results-main-content:has(.search-results-chatbot.is-open) [class~='ais-SearchBox-submit']::after {
+  filter: none;
+}
+
 .search-results .search-results-tabs {
   display: flex;
+  flex-direction: row;
   align-items: flex-end;
-  gap: 4px;
+  gap: 19px;
+  align-self: stretch;
+  padding-top: var(--space--x7) var(--space--x0);
   border-bottom: 1px solid #d9d6ee;
   overflow-x: auto;
   scrollbar-width: thin;
@@ -372,6 +388,7 @@ main > .section.search-results-section > div {
   display: flex;
   align-items: center;
   gap: 4px;
+  flex-shrink: 0;
   border: 1px solid #d9d6ee;
   border-radius: 100px;
   background: #fff;
@@ -395,10 +412,6 @@ main > .section.search-results-section > div {
   box-shadow: none;
 }
 
-.search-results .search-results-chatbot-trigger .search-results-chatbot-ai-label {
-  font-size: 22px;
-}
-
 .search-results .search-results-chatbot {
   display: flex;
   flex-direction: column;
@@ -419,10 +432,6 @@ main > .section.search-results-section > div {
   display: none;
 }
 
-.search-results .search-results-chatbot:not(.is-open) .search-results-chatbot-header {
-  display: none;
-}
-
 .search-results .search-results-chatbot-header {
   display: flex;
   align-items: center;
@@ -433,6 +442,10 @@ main > .section.search-results-section > div {
   padding: 12px 16px;
   width: 100%;
   box-sizing: border-box;
+}
+
+.search-results .search-results-chatbot:not(.is-open) .search-results-chatbot-header {
+  display: none;
 }
 
 .search-results .search-results-chatbot-brand {
@@ -452,7 +465,7 @@ main > .section.search-results-section > div {
 }
 
 .search-results .search-results-chatbot-ai-label {
-  background: linear-gradient(135deg, #df41cf 0%, #f5a623 100%);
+  background: conic-gradient(from 270deg at 50% 50%, var(--color--icon-accent-01-primary, #df41cf) 76.154deg, var(--color--icon-accent-02-primary, #ffce00) 231.923deg, #512eab 276.923deg);
   background-clip: text;
   /* stylelint-disable-next-line property-no-vendor-prefix */
   -webkit-background-clip: text;
@@ -461,6 +474,10 @@ main > .section.search-results-section > div {
   font-size: 18px;
   font-weight: 700;
   line-height: 1;
+}
+
+.search-results .search-results-chatbot-trigger .search-results-chatbot-ai-label {
+  font-size: 22px;
 }
 
 .search-results .search-results-chatbot-beta {
@@ -551,18 +568,26 @@ main > .section.search-results-section > div {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
-  border-radius: 999px;
-  background: linear-gradient(135deg, #df41cf, #512eab);
+  width: 40px;
+  height: 40px;
+  /* Union.svg shape via clip-path, conic-gradient matches its angular gradient */
+  background: conic-gradient(
+    from 90deg,
+    rgb(155 55 189) 0deg,
+    rgb(223 65 207) 76deg,
+    rgb(255 206 0) 232deg,
+    rgb(81 46 171) 277deg,
+    rgb(155 55 189) 360deg
+  );
+  /* Scale Union.svg path (32x32) to 40x40 */
+  clip-path: path('M19.963 0C30.988 0 39.925 8.954 39.925 20 39.925 31.046 30.988 39.999 19.963 40H4.117C2.937 39.968 0.815 39.998 1.123 39.325 2.047 37.3 5.389 35.9 3.246 30.936 1.102 25.973 0 24.036 0 20 0 8.957 8.937 0 19.963 0Z');
   flex-shrink: 0;
   margin-bottom: 4px;
 }
 
 .search-results .search-results-chatbot-assistant-icon img {
-  width: 18px;
-  height: 18px;
-  filter: brightness(10);
+  width: 20px;
+  height: 22px;
 }
 
 .search-results .search-results-chatbot-message {
@@ -618,7 +643,8 @@ main > .section.search-results-section > div {
 
 .search-results .search-results-chatbot-input-wrap {
   position: relative;
-  width: 100%;
+  width: 50%;
+  margin-left: auto;
   display: flex;
   align-items: center;
   height: 50px;
@@ -647,6 +673,10 @@ main > .section.search-results-section > div {
   font-family: inherit;
   font-size: 16px;
   line-height: 1.5;
+}
+
+.search-results .search-results-chatbot-input::placeholder {
+  font-weight: 400;
 }
 
 .search-results .search-results-chatbot-input:focus {
@@ -830,7 +860,8 @@ main > .section.search-results-section > div {
   }
 
   .search-results .search-results-tabs {
-    gap: 0;
+    padding-top: 20px;
+    gap: 75px;
   }
 
   .search-results .search-results-tab {
