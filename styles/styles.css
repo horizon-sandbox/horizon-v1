@@ -361,6 +361,14 @@ html:not([lang^=ar]) {
   --typestyle-normal: normal;
   --typestyle-italic: italic;
   --typestyle-oblique: oblique;
+
+  /* Grid container */
+  --grid-margin-xs: var(--space--x7);
+  --grid-margin-sm: var(--space--x10);
+  --grid-margin-md: var(--space--x14);
+  --grid-margin-lg: var(--space--x16);
+  --grid-container-width: 1440px;
+  --grid-container-margin: auto;
 }
 
 html {
@@ -424,6 +432,40 @@ html {
 }
 
 /* stylelint-enable */
+
+/* Global box-sizing */
+*,
+*::after,
+*::before {
+  box-sizing: border-box;
+}
+
+/* Global link rules */
+a {
+  font-weight: var(--typeweight--semibold);
+  text-decoration: none;
+  color: var(--color--text-link);
+
+  &:hover {
+    color: var(--color--text-link-hover);
+    text-decoration: underline;
+    text-decoration-thickness: 0.0825em;
+    text-underline-offset: 0.125em;
+  }
+
+  &:active {
+    color: var(--color--text-link-active);
+  }
+
+  &:focus,
+  &:focus-visible {
+    color: var(--color--text-link);
+    outline-width: 2px;
+    outline-style: solid;
+    outline-color: var(--color--interactive-focus-field);
+    text-decoration: none;
+  }
+}
 
 body {
   display: none;
@@ -507,18 +549,6 @@ textarea,
 select,
 button {
   font: inherit;
-}
-
-/* links */
-a:any-link {
-  color: var(--link-color);
-  text-decoration: none;
-  overflow-wrap: break-word;
-}
-
-a:hover {
-  color: var(--link-hover-color);
-  text-decoration: underline;
 }
 
 /* buttons */

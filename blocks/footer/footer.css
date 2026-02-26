@@ -1,20 +1,89 @@
-footer {
-  background-color: var(--light-color);
-  font-size: var(--body-font-size-xs);
-}
+.footer {
+  /* Not the right option but not guidance in Figma */
+  background-color: var(--color--ui-overlay-brand-light);
 
-footer .footer > div {
-  margin: auto;
-  max-width: 1200px;
-  padding: 40px 24px 24px;
-}
+  > div {
+    padding: unset;
+  }
 
-footer .footer p {
-  margin: 0;
-}
+  .default-content-wrapper {
+    outline: 1px dashed orange;
+    display: flex;
+    gap: var(--space--x8);
+    max-inline-size: 100%;
+    padding-inline: var(--grid-gutters);
+    padding-block: var(--space--x6);
+    margin-inline: var(--grid-container-margin);
 
-@media (width >= 900px) {
-  footer .footer > div {
-    padding: 40px 32px 24px;
+    @media (max-width: 375px) {
+      --grid-gutters: var(--grid-margin-xs);
+    }
+
+    /* Should become single (1) column */
+    @media (max-width: 767px) {
+      flex-direction: column;
+    }
+
+    @media (min-width: 376px) and (max-width: 768px) {
+      --grid-gutters: var(--grid-margin-sm);
+    }
+
+    @media (min-width: 769px) and (max-width: 1439px) {
+      --grid-gutters: var(--grid-margin-md);
+    }
+
+    @media (min-width: 1440px) {
+      --grid-gutters: var(--grid-margin-lg);
+      max-inline-size: var(--grid-container-width);
+    }
+
+    * {
+      font-size: var(--typesize-default);
+    }
+
+    /* List of legal links */
+    > ul {
+      display: flex;
+      align-items: center;
+      gap: var(--space--x4);
+      padding: unset;
+      margin: unset;
+
+      /* Use this rather than list-style-type: none for A11Y */
+      ::marker {
+        font-size: 0;
+      }
+
+      /* Should become (2) columns */
+      @media (max-width: 1280px) {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: var(--space--x2);
+      }
+
+      /* Should become single (1) column */
+      @media (max-width: 767px) {
+        display: flex;
+        flex-flow: row wrap;
+
+        > li {
+          inline-size: 100%;
+        }
+      }
+    }
+
+    /* Copyright information */
+    > p {
+      padding: unset;
+      margin: unset;
+
+      @media (max-width: 767px) {
+        margin-block-start: var(--space--x12);
+      }
+
+      @media (min-width: 768px) {
+        margin-inline-start: auto;
+      }
+    }
   }
 }
