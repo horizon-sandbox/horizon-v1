@@ -165,6 +165,7 @@ function createCustomChat(shell, config) {
     messages = [];
     messagesEl.textContent = '';
     setMenuOpen(false);
+    appendMessage('assistant', 'What can we help you find?');
   };
 
   const buildUserMessage = (text) => ({
