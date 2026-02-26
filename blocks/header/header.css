@@ -643,11 +643,11 @@ header nav .nav-sections .nav-drop {
       }
 
       .chevron-down-left-stroke {
-        transform-origin: 35% 50%;
+        transform-origin: 42% 50%;
       }
 
       .chevron-down-right-stroke {
-        transform-origin: 65% 50%;
+        transform-origin: 58% 50%;
       }
     }
   }
