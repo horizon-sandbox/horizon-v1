@@ -78,7 +78,7 @@ function sanitize(value) {
 }
 
 function createCustomChat(shell, config) {
-  const panel = shell.chatPanel;
+  const { chatPanel: panel, chatTrigger } = shell;
   if (!panel) return;
   const apiUrl = getAgentApiUrl(config);
   if (!apiUrl || !config.searchApiKey) return;
@@ -95,9 +95,13 @@ function createCustomChat(shell, config) {
   let conversationId = `alg_cnv_${Date.now()}`;
   let messages = [];
   let isLoading = false;
+  let hasGreeted = false;
 
   const setOpen = (open) => {
     panel.classList.toggle('is-open', open);
+    panel.hidden = !open;
+    chatTrigger?.classList.toggle('is-open', open);
+    chatTrigger?.setAttribute('aria-expanded', open ? 'true' : 'false');
     if (open && inputEl) inputEl.focus();
   };
 
@@ -113,7 +117,7 @@ function createCustomChat(shell, config) {
     if (role === 'assistant') {
       row.innerHTML = `
         <div class="search-results-chatbot-assistant-icon" aria-hidden="true">
-          <img src="/icons/favicon-light.svg" alt="" loading="lazy" />
+          <img src="/icons/bi_stars.svg" alt="" loading="lazy" />
         </div>
         <p>${sanitize(text)}</p>
       `;
@@ -182,7 +186,7 @@ function createCustomChat(shell, config) {
       pendingRow.classList.remove('is-pending');
       pendingRow.innerHTML = `
         <div class="search-results-chatbot-assistant-icon" aria-hidden="true">
-          <img src="/icons/favicon-light.svg" alt="" loading="lazy" />
+          <img src="/icons/bi_stars.svg" alt="" loading="lazy" />
         </div>
         <p>${sanitize(replyText)}</p>
       `;
@@ -199,8 +203,17 @@ function createCustomChat(shell, config) {
     }
   };
 
-  panel.addEventListener('click', (e) => {
-    if (!panel.classList.contains('is-open') && !e.target.closest('button')) setOpen(true);
+  const openChat = () => {
+    setOpen(true);
+    if (!hasGreeted) {
+      hasGreeted = true;
+      appendMessage('assistant', 'What can we help you find?');
+    }
+  };
+
+  chatTrigger?.addEventListener('click', () => {
+    if (panel.classList.contains('is-open')) setOpen(false);
+    else openChat();
   });
   closeBtn?.addEventListener('click', () => setOpen(false));
   menuBtn?.addEventListener('click', () => setMenuOpen(menuList.hidden));
@@ -216,7 +229,8 @@ function createCustomChat(shell, config) {
     tabsEl.addEventListener('click', (e) => {
       const btn = e.target.closest('.search-results-tab');
       if (!btn) return;
-      setOpen(btn.dataset.tab === 'pearson-ai');
+      if (btn.dataset.tab === 'pearson-ai') openChat();
+      else setOpen(false);
     });
   }
 
@@ -466,14 +480,25 @@ function renderShell(block, config) {
   const mainContent = document.createElement('div');
   mainContent.className = 'search-results-main-content';
 
+  const chatTrigger = document.createElement('button');
+  chatTrigger.type = 'button';
+  chatTrigger.className = 'search-results-chatbot-trigger';
+  chatTrigger.setAttribute('aria-expanded', 'false');
+  chatTrigger.innerHTML = `
+    <div class="search-results-chatbot-brand">
+      <img class="search-results-chatbot-logo-mark" src="/icons/pearson-logo-full-purple.svg" alt="Pearson AI" loading="lazy" />
+      <span class="search-results-chatbot-ai-label">AI</span>
+    </div>
+  `;
+
   const chatPanel = document.createElement('div');
   chatPanel.className = 'search-results-chatbot';
+  chatPanel.hidden = true;
   chatPanel.innerHTML = `
     <div class="search-results-chatbot-header">
       <div class="search-results-chatbot-brand">
         <img class="search-results-chatbot-logo-mark" src="/icons/pearson-logo-full-purple.svg" alt="Pearson AI" loading="lazy" />
         <span class="search-results-chatbot-ai-label">AI</span>
-        <span class="search-results-chatbot-beta">beta</span>
       </div>
       <div class="search-results-chatbot-controls">
         <div class="search-results-chatbot-menu-wrap">
@@ -490,14 +515,17 @@ function renderShell(block, config) {
       <div class="search-results-chatbot-input-wrap">
         <span class="search-results-chatbot-input-icon" aria-hidden="true">&#10023;</span>
         <input class="search-results-chatbot-input" type="text" name="chatPrompt" placeholder="${escapeHtml(config.chatPlaceholder)}" autocomplete="off" />
-        <button type="submit" class="search-results-chatbot-submit" aria-label="Send">&#8594;</button>
+        <button type="submit" class="search-results-chatbot-submit" aria-label="Send">&#8593;</button>
       </div>
     </form>
   `;
 
   const contentLayout = document.createElement('div');
   contentLayout.className = 'search-results-content-layout';
-  mainContent.append(heading, searchBox, chatPanel, tabs, panels);
+  const searchRow = document.createElement('div');
+  searchRow.className = 'search-results-search-row';
+  searchRow.append(searchBox, chatTrigger);
+  mainContent.append(heading, searchRow, chatPanel, tabs, panels);
   contentLayout.append(mainContent);
 
   const containers = {};
@@ -567,7 +595,7 @@ function renderShell(block, config) {
   shell.append(contentLayout);
   block.append(shell);
   return {
-    searchBox, containers, chatPanel,
+    searchBox, containers, chatPanel, chatTrigger,
   };
 }
 

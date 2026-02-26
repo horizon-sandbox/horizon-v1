@@ -2,11 +2,13 @@
 
 main > .section.cards-section,
 main > .section.cards-container {
-  margin: 0;
+  margin: -260px 0 0;
   position: relative;
   z-index: 3;
-  padding-bottom: 120px;
+  padding: 0;
+  overflow: visible;
 }
+
 
 main > .section.cards-section > div,
 main > .section.cards-container > div {
@@ -17,7 +19,6 @@ main > .section.cards-container > div {
 .cards {
   position: relative;
   top: 0;
-  transform: translateY(-260px);
   max-width: 1440px;
   margin: 0 auto;
   padding: 0 var(--space--x16);
@@ -150,7 +151,7 @@ main > .section.cards-container > div {
   mask-size: 100%;
   mask-repeat: no-repeat;
   mask-position: center;
-  background: currentColor;
+  background: currentcolor;
   padding: 9px;
   margin-inline-start:.4em;
 }
@@ -184,13 +185,12 @@ main > .section.cards-container > div {
 @media (width >= 900px) {
   main > .section.cards-section,
   main > .section.cards-container {
-    margin-top: 0;
-    padding-bottom: 120px;
+    margin-top: -385px;
+    padding-bottom: 0;
   }
 
   .cards {
     top: 0;
-    transform: translateY(-385px);
     padding: 0 64px;
   }
 
