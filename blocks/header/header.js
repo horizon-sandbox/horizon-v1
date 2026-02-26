@@ -168,6 +168,10 @@ export default async function decorate(block) {
         // inject chevron icon
         const chevron = document.createElement('span');
         chevron.className = 'icon icon-chevron-down nav-drop-icon';
+        chevron.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="24" height="24" viewBox="0 0 24 24">
+              <path class="chevron-down-left-stroke" fill="currentColor" d="M11.29,16.2c.39.39,1.02.39,1.41,0,.39-.39.39-1.02,0-1.41l-7-6.98c-.39-.39-1.02-.39-1.41,0-.39.39-.39,1.02,0,1.41l7,6.98Z"/>
+              <path class="chevron-down-right-stroke" fill="currentColor" d="M19.72,9.22c.39-.39.39-1.02,0-1.41-.39-.39-1.02-.39-1.41,0l-7,6.98c-.39.39-.39,1.02,0,1.41.39.39,1.02.39,1.41,0l7-6.98Z"/>
+            </svg>`;
         navSection.append(chevron);
       }
       navSection.addEventListener('click', () => {

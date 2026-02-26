@@ -18,8 +18,8 @@ main > .section.cards-container > div {
   position: relative;
   top: 0;
   transform: translateY(-260px);
-  max-width: none;
-  margin: 0;
+  max-width: 1440px;
+  margin: 0 auto;
   padding: 0 var(--space--x16);
 }
 
