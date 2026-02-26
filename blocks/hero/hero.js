@@ -40,16 +40,10 @@ export default function decorate(block) {
   const placeholderBtn = staticPlaceholder?.querySelector('button');
   const placeholderBtnImg = placeholderBtn?.querySelector('img');
 
-  // Container appended to body so the widget renders in its natural bottom-corner position
+  // Container appended to body so the chat widget renders in its natural bottom-corner position
   const chatContainer = document.createElement('div');
   chatContainer.id = 'hero-algolia-chat';
   document.body.append(chatContainer);
-
-  function triggerAlgoliaOpen() {
-    // Click the widget's own toggle button so Algolia manages its own open state
-    const widgetBtn = chatContainer.querySelector('button[aria-expanded]');
-    if (widgetBtn && widgetBtn.getAttribute('aria-expanded') !== 'true') widgetBtn.click();
-  }
 
   // Navigate to /search on submit (Enter or button click)
   const searchForm = staticPlaceholder;
@@ -61,7 +55,187 @@ export default function decorate(block) {
     });
   }
 
-  if (placeholderInput) placeholderInput.addEventListener('focus', triggerAlgoliaOpen);
+  // ── Autocomplete dropdown ──────────────────────────────────────────────────
+  async function initAutocomplete() {
+    try {
+      // eslint-disable-next-line import/no-unresolved
+      const { liteClient } = await import('https://esm.sh/algoliasearch@5/lite');
+      const client = liteClient('XFOI9EBBHR', '3b463119b3996ce4822a14242b948870');
+
+      const PRODUCT_INDEX = 'live-learner-program-index';
+      const IMG_PREFIX = 'https://www.pearson.com/store/en-us';
+      const STORE_HOST = 'https://www.pearson.com';
+
+      // Plain X clear button — only visible when input has text
+      const clearBtn = document.createElement('button');
+      clearBtn.type = 'button';
+      clearBtn.className = 'hero-search-clear';
+      clearBtn.setAttribute('aria-label', 'Clear search');
+      clearBtn.innerHTML = '<svg aria-hidden="true" focusable="false" width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M7 5.58579L12.2929 0.292893C12.6834 -0.0976311 13.3166 -0.0976311 13.7071 0.292893C14.0976 0.683418 14.0976 1.31658 13.7071 1.70711L8.41421 7L13.7071 12.2929C14.0976 12.6834 14.0976 13.3166 13.7071 13.7071C13.3166 14.0976 12.6834 14.0976 12.2929 13.7071L7 8.41421L1.70711 13.7071C1.31658 14.0976 0.683418 14.0976 0.292893 13.7071C-0.0976311 13.3166 -0.0976311 12.6834 0.292893 12.2929L5.58579 7L0.292893 1.70711C-0.0976311 1.31658 -0.0976311 0.683418 0.292893 0.292893C0.683418 -0.0976311 1.31658 -0.0976311 1.70711 0.292893L7 5.58579Z" fill="currentColor"/></svg>';
+      clearBtn.hidden = true;
+      staticPlaceholder.insertBefore(clearBtn, placeholderBtn);
+
+      // Append dropdown to body so it renders above all page stacking contexts
+      const dropdown = document.createElement('div');
+      dropdown.className = 'hero-search-dropdown';
+      dropdown.setAttribute('role', 'region');
+      dropdown.setAttribute('aria-label', 'Search suggestions');
+      dropdown.hidden = true;
+      document.body.append(dropdown);
+
+      // Position the dropdown to align with the search bar
+      const positionDropdown = () => {
+        const rect = staticPlaceholder.getBoundingClientRect();
+        dropdown.style.top = `${rect.bottom + window.scrollY + 8}px`;
+        dropdown.style.left = `${rect.left + window.scrollX}px`;
+        dropdown.style.width = `${rect.width}px`;
+      };
+
+      let debounceTimer;
+
+      const closeDropdown = () => {
+        dropdown.hidden = true;
+        clearBtn.hidden = true;
+      };
+      const openDropdown = () => {
+        positionDropdown();
+        dropdown.hidden = false;
+        clearBtn.hidden = !placeholderInput.value;
+      };
+
+      // Product card template
+      const productCardHtml = (hit) => {
+        const hitTitle = hit.name || hit.objectID;
+        const author = hit.authorsAggregated || '';
+        const thumb = hit.smallThumbnail ? `${IMG_PREFIX}${hit.smallThumbnail}` : '';
+        const rawUrl = hit.url || '';
+        const url = rawUrl.startsWith('http') ? rawUrl : `${STORE_HOST}${rawUrl || `#${hit.objectID}`}`;
+        return `<li class="hero-search-product">
+          <a class="hero-search-product-link" href="${url}">
+            ${thumb
+    ? `<img class="hero-search-product-thumb" src="${thumb}" alt="" loading="lazy">`
+    : '<div class="hero-search-product-thumb is-placeholder"></div>'}
+            <div class="hero-search-product-info">
+              <span class="hero-search-product-title">${hitTitle}</span>
+              ${author ? `<span class="hero-search-product-author">${author}</span>` : ''}
+            </div>
+          </a>
+        </li>`;
+      };
+
+      // Best Selling Products section HTML
+      const bestSellersHtml = (hits) => `
+        <p class="hero-search-section-heading">BEST SELLING PRODUCTS</p>
+        <ul class="hero-search-products" role="list">${hits.map(productCardHtml).join('')}</ul>`;
+
+      // Show empty state — focus with no query
+      const showBestSellers = async () => {
+        try {
+          const { results } = await client.search({
+            requests: [{ indexName: PRODUCT_INDEX, query: '', hitsPerPage: 4 }],
+          });
+          const hits = results[0]?.hits ?? [];
+          const nbHits = results[0]?.nbHits ?? 0;
+          if (!hits.length) { closeDropdown(); return; }
+          const searchUrl = '/search.html';
+          dropdown.innerHTML = `${bestSellersHtml(hits)}
+            <div class="hero-search-footer">
+              <a class="hero-search-footer-count" href="${searchUrl}">${nbHits.toLocaleString()} items found</a>
+              <a class="hero-search-footer-viewall" href="${searchUrl}">View all</a>
+            </div>`;
+          openDropdown();
+        } catch { closeDropdown(); }
+      };
+
+      // Show results — query row + products + footer, all from one index
+      const showResults = async (query) => {
+        try {
+          const { results } = await client.search({
+            requests: [{ indexName: PRODUCT_INDEX, query, hitsPerPage: 4 }],
+          });
+          const prodHits = results[0]?.hits ?? [];
+          const nbHits = results[0]?.nbHits ?? 0;
+
+          if (!nbHits) { closeDropdown(); return; }
+
+          const searchUrl = `/search.html?q=${encodeURIComponent(query)}`;
+          let html = `<ul class="hero-search-suggestions" role="list">
+            <li class="hero-search-suggestion">
+              <a class="hero-search-suggestion-link" href="${searchUrl}">&ldquo;${query}&rdquo; <span class="hero-search-suggestion-count">(${nbHits.toLocaleString()})</span></a>
+            </li>
+          </ul>`;
+
+          if (prodHits.length) {
+            html += `<hr class="hero-search-divider">${bestSellersHtml(prodHits)}`;
+          }
+
+          html += `<div class="hero-search-footer">
+            <a class="hero-search-footer-count" href="${searchUrl}">${nbHits.toLocaleString()} items found</a>
+            <a class="hero-search-footer-viewall" href="${searchUrl}">View all</a>
+          </div>`;
+
+          dropdown.innerHTML = html;
+          openDropdown();
+        } catch { closeDropdown(); }
+      };
+
+      if (placeholderInput) {
+        // Update suggestions as user types
+        placeholderInput.addEventListener('input', () => {
+          const query = placeholderInput.value.trim();
+          clearTimeout(debounceTimer);
+          if (!query) {
+            debounceTimer = setTimeout(showBestSellers, 100);
+          } else if (query.length >= 2) {
+            debounceTimer = setTimeout(() => showResults(query), 200);
+          }
+        });
+
+        // Any click or focus inside the search bar opens the dropdown
+        staticPlaceholder.addEventListener('click', () => {
+          const query = placeholderInput.value.trim();
+          if (query.length >= 2) showResults(query);
+          else showBestSellers();
+        });
+
+        placeholderInput.addEventListener('focus', () => {
+          const query = placeholderInput.value.trim();
+          if (query.length >= 2) showResults(query);
+          else showBestSellers();
+        });
+
+        // Clear button: reset input and show best sellers
+        clearBtn.addEventListener('click', () => {
+          placeholderInput.value = '';
+          clearBtn.hidden = true;
+          placeholderInput.focus();
+          showBestSellers();
+        });
+
+        placeholderInput.addEventListener('keydown', (e) => {
+          if (e.key === 'Escape') { closeDropdown(); placeholderInput.blur(); }
+        });
+
+        // Keep input focused when clicking inside dropdown
+        dropdown.addEventListener('mousedown', (e) => e.preventDefault());
+
+        // Close when clicking outside search bar or dropdown
+        document.addEventListener('click', (e) => {
+          if (!staticPlaceholder.contains(e.target) && !dropdown.contains(e.target)) {
+            closeDropdown();
+          }
+        });
+
+        // Reposition on resize/scroll
+        window.addEventListener('resize', () => { if (!dropdown.hidden) positionDropdown(); });
+        window.addEventListener('scroll', () => { if (!dropdown.hidden) positionDropdown(); }, { passive: true });
+      }
+    } catch {
+      // autocomplete unavailable — static form still works
+    }
+  }
+
+  initAutocomplete();
 
   async function initAlgoliaChat() {
     try {
