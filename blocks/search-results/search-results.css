@@ -110,14 +110,7 @@ main > .section.search-results-section > div {
 
 .search-results .search-results-searchbox [class~='ais-SearchBox-input']::-webkit-search-cancel-button,
 .search-results .search-results-searchbox [class~='ais-SearchBox-input']::-webkit-search-decoration {
-  -webkit-appearance: none;
   appearance: none;
-}
-
-.search-results .search-results-searchbox [class~='ais-SearchBox-submit'] {
-  border: 0;
-  background: transparent;
-  cursor: pointer;
 }
 
 .search-results .search-results-searchbox [class~='ais-SearchBox-reset'] {
