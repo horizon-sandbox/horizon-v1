@@ -98,10 +98,10 @@ main > div:first-child:has(.hero) > div {
 	align-items: center;
 	gap: var(--space--x4);
 	height: 50px;
-	border-radius: var(--corners-pill);
+	border-radius: var(--corner--max, 1440px);
 	border: var(--border--x1) solid var(--color--ui-border-03, #512eab);
-	background: #fff;
-	box-shadow: 0 4px 4px 0 rgb(0 0 0 / 10%);
+	background: var(--color--ui-field, #fff);
+	box-shadow: var(--effect--shadow-neutral-01, 0 2px 4px 0 rgb(0 0 0 / 25%));
 	padding: 0 var(--space--x1-half) 0 0;
 	overflow: hidden;
 }
@@ -126,33 +126,38 @@ main > div:first-child:has(.hero) > div {
 
 .hero .hero-search button {
 	flex-shrink: 0;
-	width: 38px;
-	height: 38px;
-	margin-right: var(--space--x1-half);
+	position: relative;
+	width: 40px;
+	height: 40px;
 	padding: 0;
-	border: 0;
-	border-radius: var(--corners-circle);
-	background: var(--color--interactive-primary);
+	border: none;
+	border-radius: var(--corner--max, 1440px);
+	background: conic-gradient(from 225deg, var(--color--icon-accent-01-primary, #df41cf), var(--color--icon-brand-02, #512eab), var(--color--icon-accent-02-primary, #ffce00), var(--color--icon-accent-01-primary, #df41cf));
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
 	appearance: none;
 	cursor: pointer;
 	z-index: 2;
+	box-sizing: border-box;
 }
 
-.hero .hero-search button img {
+.hero .hero-search button::before {
+	content: '';
+	position: absolute;
+	inset: 3px;
+	border-radius: inherit;
+	background: var(--color--icon-brand-02, #512eab);
+	z-index: 0;
+}
+
+.hero .hero-search button img,
+.hero .hero-search button .icon {
+	position: relative;
+	z-index: 1;
 	width: 18px;
 	height: 18px;
 	filter: brightness(0) invert(1);
-}
-
-.hero .hero-search button.is-ai-ready {
-	background: var(--color--icon-accent-02-primary, #ffce00);
-}
-
-.hero .hero-search button.is-ai-ready img {
-	filter: none;
 }
 
 @media (width >= 900px) {
