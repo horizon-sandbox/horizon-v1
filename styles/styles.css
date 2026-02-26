@@ -460,9 +460,7 @@ a {
   &:focus,
   &:focus-visible {
     color: var(--color--text-link);
-    outline-width: 2px;
-    outline-style: solid;
-    outline-color: var(--color--interactive-focus-field);
+    outline: var(--color--interactive-focus-field) solid 2px;
     text-decoration: none;
   }
 }
