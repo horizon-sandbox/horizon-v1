@@ -56,6 +56,22 @@ main > .section.search-results-section > div {
   line-height: 1.2;
 }
 
+.search-results .search-results-search-row {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+}
+
+.search-results .search-results-search-row .search-results-searchbox {
+  flex: 1;
+  min-width: 0;
+  width: auto;
+}
+
+.search-results .search-results-search-row .search-results-chatbot-trigger {
+  flex-shrink: 0;
+}
+
 .search-results .search-results-searchbox {
   width: 100%;
 }
@@ -109,10 +125,8 @@ main > .section.search-results-section > div {
   height: 40px;
   aspect-ratio: 1 / 1;
   border-radius: 668.571px;
-  border: 3px solid transparent;
-  background:
-    linear-gradient(#fff, #fff) padding-box,
-    conic-gradient(from 225deg, var(--color--icon-accent-01-primary, #df41cf), var(--color--icon-brand-02, #512eab), var(--color--icon-accent-02-primary, #ffce00), var(--color--icon-accent-01-primary, #df41cf)) border-box;
+  border: none;
+  background: conic-gradient(from 225deg, var(--color--icon-accent-01-primary, #df41cf), var(--color--icon-brand-02, #512eab), var(--color--icon-accent-02-primary, #ffce00), var(--color--icon-accent-01-primary, #df41cf));
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -129,10 +143,22 @@ main > .section.search-results-section > div {
 
 .search-results .search-results-searchbox [class~='ais-SearchBox-submit']::before {
   content: '';
+  position: absolute;
+  inset: 3px;
+  border-radius: inherit;
+  background: var(--color--icon-brand-02, #512eab);
+  z-index: 0;
+}
+
+.search-results .search-results-searchbox [class~='ais-SearchBox-submit']::after {
+  content: '';
+  position: relative;
+  z-index: 1;
   display: block;
   width: 21px;
   height: 23px;
   background: url('/icons/agentic-search.svg') center / contain no-repeat;
+  filter: brightness(0) invert(1);
 }
 
 .search-results .search-results-tabs {
@@ -342,29 +368,38 @@ main > .section.search-results-section > div {
   line-height: 1.5;
 }
 
-.search-results .search-results-chatbot {
+.search-results .search-results-chatbot-trigger {
   display: flex;
   align-items: center;
-  width: fit-content;
+  gap: 4px;
   border: 1px solid #d9d6ee;
   border-radius: 100px;
   background: #fff;
   box-shadow: 0 4px 20px rgb(0 0 0 / 12%);
-  overflow: hidden;
-  margin: 16px 0;
+  padding: 10px 20px;
   font-family: inherit;
   font-size: 22px;
   font-weight: 700;
   line-height: 1;
   cursor: pointer;
-  transition: box-shadow 0.15s ease;
+  transition: box-shadow 0.15s ease, background 0.15s ease;
 }
 
-.search-results .search-results-chatbot:not(.is-open):hover {
+.search-results .search-results-chatbot-trigger:hover:not(.is-open) {
   box-shadow: 0 6px 28px rgb(0 0 0 / 18%);
 }
 
-.search-results .search-results-chatbot.is-open {
+.search-results .search-results-chatbot-trigger.is-open {
+  background: transparent;
+  border: 2px solid var(--color--interactive-secondary-inverse, #fff);
+  box-shadow: none;
+}
+
+.search-results .search-results-chatbot-trigger .search-results-chatbot-ai-label {
+  font-size: 22px;
+}
+
+.search-results .search-results-chatbot {
   display: flex;
   flex-direction: column;
   align-items: stretch;
@@ -372,27 +407,32 @@ main > .section.search-results-section > div {
   border: 1px solid #d9d6ee;
   border-radius: 16px;
   box-shadow: 0 4px 16px rgb(0 0 0 / 12%);
+  overflow: hidden;
   margin: 0 0 20px;
-  cursor: default;
+  font-family: inherit;
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.search-results .search-results-chatbot[hidden] {
+  display: none;
+}
+
+.search-results .search-results-chatbot:not(.is-open) .search-results-chatbot-header {
+  display: none;
 }
 
 .search-results .search-results-chatbot-header {
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: space-between;
   gap: 8px;
-  background: transparent;
-  padding: 12px 24px;
+  background: #fbfaff;
+  border-bottom: 1px solid #ece9f8;
+  padding: 12px 16px;
   width: 100%;
   box-sizing: border-box;
-}
-
-.search-results .search-results-chatbot.is-open .search-results-chatbot-header {
-  justify-content: space-between;
-  border-bottom: 1px solid #ece9f8;
-  background: #fbfaff;
-  padding: 12px 16px;
-  cursor: default;
 }
 
 .search-results .search-results-chatbot-brand {
@@ -428,15 +468,6 @@ main > .section.search-results-section > div {
   font-size: 16px;
   font-weight: 300;
   line-height: 1;
-}
-
-.search-results .search-results-chatbot:not(.is-open) .search-results-chatbot-ai-label {
-  font-size: 22px;
-}
-
-.search-results .search-results-chatbot:not(.is-open) .search-results-chatbot-beta {
-  font-size: 18px;
-  font-weight: 300;
 }
 
 .search-results .search-results-chatbot-controls {
@@ -510,7 +541,8 @@ main > .section.search-results-section > div {
   display: flex;
   flex-direction: column;
   gap: 14px;
-  padding: 12px 16px;
+  padding: 24px 16px;
+  min-height: 120px;
   max-height: 360px;
   overflow-y: auto;
 }
