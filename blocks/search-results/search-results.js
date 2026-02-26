@@ -307,8 +307,7 @@ function createCustomChat(shell, config) {
     tabsEl.addEventListener('click', (e) => {
       const btn = e.target.closest('.search-results-tab');
       if (!btn) return;
-      if (btn.dataset.tab === 'pearson-ai') openChat();
-      else setOpen(false);
+      if (btn.dataset.tab !== 'pearson-ai') setOpen(false);
     });
   }
 
@@ -340,18 +339,22 @@ function readConfig(block) {
     title: 'Search Results',
     placeholder: 'Search products, resources, or ask a question...',
     initialQuery: '',
-    hitsPerPage: 4,
+    hitsPerPage: 12,
     shopIndex: 'live-learner-program-index-vector',
     contentIndex: 'live-en-us-learner-content-index',
     studyIndex: 'live-study-prep-course-catalog',
     discoverIndex: 'live-en-us-learner-content-support-index',
     supportIndex: 'live-en-us-learner-content-support-index',
+    assessmentsAppId: 'XFOI9EBBHR',
+    assessmentsApiKey: '1e7c60a2d332875433b8e237db632d41',
+    assessmentsIndex: 'live-usassessments-product-index',
     pearsonAiLabel: 'View All',
     shopLabel: 'Shop',
     studyLabel: 'Study',
     discoverLabel: 'Discover',
     supportLabel: 'Support',
     contentLabel: 'Content',
+    assessmentsLabel: 'Assessments',
     chatEnabled: true,
     chatAgentId: '',
     chatAgentApiUrl: '',
@@ -375,7 +378,7 @@ function readConfig(block) {
     initialquery: (v) => { config.initialQuery = v; },
     hitsperpage: (v) => {
       const parsed = Number.parseInt(v, 10);
-      if (!Number.isNaN(parsed)) config.hitsPerPage = Math.max(1, Math.min(parsed, 10));
+      if (!Number.isNaN(parsed)) config.hitsPerPage = Math.max(1, Math.min(parsed, 20));
     },
     shopindex: (v) => { config.shopIndex = v; },
     learnerprogramindex: (v) => { config.shopIndex = v; },
@@ -384,12 +387,16 @@ function readConfig(block) {
     supportindex: (v) => { config.supportIndex = v; },
     contentindex: (v) => { config.contentIndex = v; },
     learnercontentindex: (v) => { config.contentIndex = v; },
+    assessmentsindex: (v) => { config.assessmentsIndex = v; },
+    assessmentsappid: (v) => { config.assessmentsAppId = v; },
+    assessmentsapikey: (v) => { config.assessmentsApiKey = v; },
     pearsonailabel: (v) => { config.pearsonAiLabel = v; },
     shoplabel: (v) => { config.shopLabel = v; },
     studylabel: (v) => { config.studyLabel = v; },
     discoverlabel: (v) => { config.discoverLabel = v; },
     supportlabel: (v) => { config.supportLabel = v; },
     contentlabel: (v) => { config.contentLabel = v; },
+    assessmentslabel: (v) => { config.assessmentsLabel = v; },
     chatenabled: (v) => { config.chatEnabled = toBoolean(v, true); },
     agentid: (v) => { config.chatAgentId = v; },
     chatagentid: (v) => { config.chatAgentId = v; },
@@ -458,15 +465,18 @@ function getFirstArrayValue(item, keys) {
 }
 
 function cardTitle(item) {
-  return getFirstString(item, ['name_en', 'name', 'title', 'webpagetitle']) || 'Untitled';
+  return getFirstString(item, ['name_en', 'name', 'title', 'webpagetitle', 'productName', 'assessmentTitle', 'programName', 'displayName']) || 'Untitled';
 }
 
 function cardDescription(item) {
-  return stripHtml(getFirstString(item, ['summary_en', 'summary', 'description_en', 'description', 'metaDescription']));
+  return stripHtml(getFirstString(item, ['summary_en', 'summary', 'description_en', 'description', 'metaDescription', 'shortDescription', 'overview']));
 }
 
 function cardHref(item) {
-  return getFirstString(item, ['url_en', 'defaultProgramUrl', 'url']) || '#';
+  const href = getFirstString(item, ['url_en', 'defaultProgramUrl', 'url', 'productUrl', 'pageUrl', 'canonicalUrl', 'slug']) || '#';
+  if (!href.startsWith('/')) return href;
+  const base = item.sourceKey === 'assessments' ? 'https://www.pearsonassessments.com' : 'https://www.pearson.com';
+  return `${base}${href}`;
 }
 
 function buildProductCardHtml(url, titleFromSlug, hit) {
@@ -515,8 +525,11 @@ function cardMeta(item, sourceLabel, sourceKey = '') {
   const format = getFirstArrayValue(item, ['subFormats', 'mainFormats'])
     || getFirstString(item, ['format', 'deliveryMode', 'programType', 'resourceType']);
 
+  const trainingType = getFirstArrayValue(item, ['trainingType_en', 'reportType_en', 'materialType_en', 'platformType_en']);
+
   const edition = getFirstString(item, ['programEdition', 'edition', 'editionName']);
   const price = getFirstString(item, ['lowestDiscountedProgramPriceValue', 'lowestProgramPriceValue', 'price']);
+  const qualLevel = getFirstString(item, ['qualificationLevel']);
 
   const sourceMetaMap = {
     shop: [sourceLabel, category, edition || format || price],
@@ -524,6 +537,7 @@ function cardMeta(item, sourceLabel, sourceKey = '') {
     discover: [sourceLabel, contentType || category, format || edition],
     support: [sourceLabel, contentType || category, format || edition],
     content: [sourceLabel, contentType || category, format || edition],
+    assessments: [sourceLabel, trainingType || contentType || format, qualLevel || category],
   };
 
   const fallback = [sourceLabel, category, format || edition || price];
@@ -557,7 +571,7 @@ function renderCards(container, items, emptyText, metaContext = {}) {
     row.className = 'search-results-list-item';
     row.innerHTML = `
        <article class="search-results-card">
-         <h3 class="search-results-card-title"><a href="${escapeHtml(href)}">${escapeHtml(title)}</a></h3>
+         <h3 class="search-results-card-title"><a href="${escapeHtml(href)}" target="_blank" rel="noopener noreferrer">${escapeHtml(title)}</a></h3>
          ${description ? `<p class="search-results-card-text">${escapeHtml(description)}</p>` : ''}
          ${meta.length ? `<p class="search-results-card-meta">${meta.map((entry) => `<span>${escapeHtml(entry)}</span>`).join('')}</p>` : ''}
        </article>
@@ -809,6 +823,8 @@ export default async function decorate(block) {
         const query = findQueryInUiState(uiState, config);
         updateUrlQuery(query);
         setUiState(uiState);
+        // eslint-disable-next-line no-use-before-define
+        searchAssessments(query);
       },
     });
 
@@ -824,9 +840,12 @@ export default async function decorate(block) {
       searchBox({
         container: shell.searchBox,
         placeholder: config.placeholder,
-        showReset: false,
+        showReset: true,
         showSubmit: true,
         showLoadingIndicator: false,
+        templates: {
+          reset: '<svg aria-hidden="true" focusable="false" width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M7 5.58579L12.2929 0.292893C12.6834 -0.0976311 13.3166 -0.0976311 13.7071 0.292893C14.0976 0.683418 14.0976 1.31658 13.7071 1.70711L8.41421 7L13.7071 12.2929C14.0976 12.6834 14.0976 13.3166 13.7071 13.7071C13.3166 14.0976 12.6834 14.0976 12.2929 13.7071L7 8.41421L1.70711 13.7071C1.31658 14.0976 0.683418 14.0976 0.292893 13.7071C-0.0976311 13.3166 -0.0976311 12.6834 0.292893 12.2929L5.58579 7L0.292893 1.70711C-0.0976311 1.31658 -0.0976311 0.683418 0.292893 0.292893C0.683418 -0.0976311 1.31658 -0.0976311 1.70711 0.292893L7 5.58579Z" fill="currentColor"/></svg>',
+        },
       }),
     ]);
 
@@ -836,6 +855,7 @@ export default async function decorate(block) {
       discover: { hits: [], nbHits: 0 },
       support: { hits: [], nbHits: 0 },
       content: { hits: [], nbHits: 0 },
+      assessments: { hits: [], nbHits: 0 },
     };
 
     let aiPage = 0;
@@ -857,6 +877,7 @@ export default async function decorate(block) {
       const seen = new Set();
 
       [
+        { key: 'assessments', label: config.assessmentsLabel },
         { key: 'shop', label: config.shopLabel },
         { key: 'study', label: config.studyLabel },
         { key: 'discover', label: config.discoverLabel },
@@ -919,8 +940,26 @@ export default async function decorate(block) {
       createCustomChat(shell, config);
     }
 
+    const searchAssessments = async (query) => {
+      if (!config.assessmentsAppId || !config.assessmentsApiKey || !config.assessmentsIndex) return;
+      if (!query) {
+        state.assessments = { hits: [], nbHits: 0 };
+        refresh();
+        return;
+      }
+      try {
+        const aClient = window.algoliasearch(config.assessmentsAppId, config.assessmentsApiKey);
+        const result = await aClient.initIndex(config.assessmentsIndex).search(query || '', { hitsPerPage: config.hitsPerPage });
+        state.assessments = { hits: result.hits || [], nbHits: result.nbHits || 0 };
+      } catch (e) {
+        state.assessments = { hits: [], nbHits: 0 };
+      }
+      refresh();
+    };
+
     search.addWidgets(sourceWidgets);
     refresh();
+    if (initialQuery) searchAssessments(initialQuery);
     search.start();
   } catch (error) {
     // eslint-disable-next-line no-console
