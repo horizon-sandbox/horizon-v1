@@ -78,7 +78,7 @@ function sanitize(value) {
 }
 
 function createCustomChat(shell, config) {
-  const panel = shell.chatPanel;
+  const { chatPanel: panel, chatTrigger } = shell;
   if (!panel) return;
   const apiUrl = getAgentApiUrl(config);
   if (!apiUrl || !config.searchApiKey) return;
@@ -98,6 +98,9 @@ function createCustomChat(shell, config) {
 
   const setOpen = (open) => {
     panel.classList.toggle('is-open', open);
+    panel.hidden = !open;
+    chatTrigger?.classList.toggle('is-open', open);
+    chatTrigger?.setAttribute('aria-expanded', open ? 'true' : 'false');
     if (open && inputEl) inputEl.focus();
   };
 
@@ -199,9 +202,7 @@ function createCustomChat(shell, config) {
     }
   };
 
-  panel.addEventListener('click', (e) => {
-    if (!panel.classList.contains('is-open') && !e.target.closest('button')) setOpen(true);
-  });
+  chatTrigger?.addEventListener('click', () => setOpen(!panel.classList.contains('is-open')));
   closeBtn?.addEventListener('click', () => setOpen(false));
   menuBtn?.addEventListener('click', () => setMenuOpen(menuList.hidden));
   newChatBtn?.addEventListener('click', startNewChat);
@@ -466,14 +467,25 @@ function renderShell(block, config) {
   const mainContent = document.createElement('div');
   mainContent.className = 'search-results-main-content';
 
+  const chatTrigger = document.createElement('button');
+  chatTrigger.type = 'button';
+  chatTrigger.className = 'search-results-chatbot-trigger';
+  chatTrigger.setAttribute('aria-expanded', 'false');
+  chatTrigger.innerHTML = `
+    <div class="search-results-chatbot-brand">
+      <img class="search-results-chatbot-logo-mark" src="/icons/pearson-logo-full-purple.svg" alt="Pearson AI" loading="lazy" />
+      <span class="search-results-chatbot-ai-label">AI</span>
+    </div>
+  `;
+
   const chatPanel = document.createElement('div');
   chatPanel.className = 'search-results-chatbot';
+  chatPanel.hidden = true;
   chatPanel.innerHTML = `
     <div class="search-results-chatbot-header">
       <div class="search-results-chatbot-brand">
         <img class="search-results-chatbot-logo-mark" src="/icons/pearson-logo-full-purple.svg" alt="Pearson AI" loading="lazy" />
         <span class="search-results-chatbot-ai-label">AI</span>
-        <span class="search-results-chatbot-beta">beta</span>
       </div>
       <div class="search-results-chatbot-controls">
         <div class="search-results-chatbot-menu-wrap">
@@ -497,7 +509,10 @@ function renderShell(block, config) {
 
   const contentLayout = document.createElement('div');
   contentLayout.className = 'search-results-content-layout';
-  mainContent.append(heading, searchBox, chatPanel, tabs, panels);
+  const searchRow = document.createElement('div');
+  searchRow.className = 'search-results-search-row';
+  searchRow.append(searchBox, chatTrigger);
+  mainContent.append(heading, searchRow, chatPanel, tabs, panels);
   contentLayout.append(mainContent);
 
   const containers = {};
@@ -567,7 +582,7 @@ function renderShell(block, config) {
   shell.append(contentLayout);
   block.append(shell);
   return {
-    searchBox, containers, chatPanel,
+    searchBox, containers, chatPanel, chatTrigger,
   };
 }
 
