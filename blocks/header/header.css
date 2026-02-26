@@ -19,10 +19,7 @@ header.is-scrolled .nav-wrapper::before,
 header .nav-wrapper:has(.nav-drop[aria-expanded='true'])::before {
   content: '';
   position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  right: 0;
+  inset: 0;
   background: var(--color--ui-background-light);
   box-shadow: 0 4px 12px rgb(0 0 0 / 8%);
   z-index: -1;
@@ -357,6 +354,14 @@ header nav .nav-sections ul > li > ul > li {
     border-bottom: 1px solid rgb(13 0 77 / 15%);
   }
 
+  /* Simple items without a column header (direct li > a) */
+  header nav .nav-sections .default-content-wrapper > ul > li[aria-expanded='true'] > ul > li > a {
+    color: var(--color--text-brand-01, #0d004d);
+    font-size: 14px;
+    font-weight: 400;
+    text-decoration: none;
+  }
+
   header nav .nav-sections .default-content-wrapper > ul > li[aria-expanded='true'] > ul > li > p > a,
   header nav .nav-sections .default-content-wrapper > ul > li[aria-expanded='true'] > ul > li > p > strong > a {
     color: var(--color--text-brand-01, #0d004d);
@@ -398,13 +403,6 @@ header nav .nav-sections ul > li > ul > li {
     color: var(--color--text-link, #512eab);
   }
 
-  /* Simple items without a column header (direct li > a) */
-  header nav .nav-sections .default-content-wrapper > ul > li[aria-expanded='true'] > ul > li > a {
-    color: var(--color--text-brand-01, #0d004d);
-    font-size: 14px;
-    font-weight: 400;
-    text-decoration: none;
-  }
 }
 
 /* tools */
@@ -465,9 +463,7 @@ header nav .nav-tools a:hover {
 
 /* Sign In pill — always purple, white text */
 header nav .nav-tools a.nav-cta:any-link,
-header nav .nav-tools button.nav-cta,
-header.is-scrolled .nav-tools a.nav-cta:any-link,
-header.is-scrolled .nav-tools button.nav-cta {
+header nav .nav-tools button.nav-cta {
   height: 32px;
   padding: 0 24px;
   border-radius: var(--corner--max, 1440px);
