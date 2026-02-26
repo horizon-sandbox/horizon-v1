@@ -26,7 +26,7 @@ export default function decorate(block) {
           <div class="hero-search-placeholder">
             <input type="text" placeholder="${placeholder}" aria-label="Search" />
             <button type="button" aria-label="Submit search">
-              <img src="/icons/search.svg" alt="" width="18" height="18" loading="lazy" />
+              <img src="/icons/agentic-search.svg" alt="" width="18" height="18" loading="lazy" />
             </button>
           </div>
         </div>
