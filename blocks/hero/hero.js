@@ -57,7 +57,8 @@ export default function decorate(block) {
     searchForm.addEventListener('submit', (event) => {
       event.preventDefault();
       const query = placeholderInput?.value.trim() || '';
-      const searchUrl = new URL('/search', window.location.href);
+      const base = window.location.href.replace(/\/?(\?.*)?$/, '/');
+      const searchUrl = new URL('search', base);
       if (query) searchUrl.searchParams.set('q', query);
       window.location.href = searchUrl.toString();
     });
