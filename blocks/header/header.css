@@ -23,12 +23,16 @@ header .nav-wrapper:has(.nav-drop[aria-expanded='true'])::before {
   background: var(--color--ui-background-light);
   box-shadow: 0 4px 12px rgb(0 0 0 / 8%);
   z-index: -1;
+  top: var(--space--x4);
+  left: var(--space--x21);
+  right: var(--space--x21);
+  border-radius: var(--corner--x2, 8px);
 }
 
 header .nav-wrapper:has(.nav-drop[aria-expanded='true'])::before {
-  top: var(--space--x3);
-  left: var(--space--x16);
-  right: var(--space--x16);
+  top: var(--space--x4);
+  left: var(--space--x21);
+  right: var(--space--x21);
   border-radius: var(--corner--x2, 8px) var(--corner--x2, 8px) 0 0;
   box-shadow: none;
 }
@@ -68,7 +72,8 @@ header nav[aria-expanded='true'] {
     justify-content: space-between;
     gap: 40px;
     max-width: 1440px;
-    padding: 16px var(--space--x16);
+    margin-top: var(--space--x4);
+    padding: var(--space--x4) var(--space--x22);
     height: auto;
   }
 
@@ -85,6 +90,10 @@ header nav p {
 
 header nav a:any-link {
   color: currentcolor;
+}
+
+header nav a:any-link:not(.button):not(.nav-cta):not(.nav-tool-icon):hover {
+  text-decoration: underline;
 }
 
 /* Reset button decoration that decorateMain applies to standalone links */
@@ -202,7 +211,7 @@ header nav[aria-expanded='true'] .nav-hamburger-icon::after {
 /* brand */
 header .nav-brand {
   grid-area: brand;
-  flex-basis: 120px;
+  flex-basis: 100px;
   flex-shrink: 0;
   font-size: var(--heading-font-size-s);
   font-weight: 700;
@@ -210,7 +219,7 @@ header .nav-brand {
 }
 
 header nav .nav-brand img {
-  width: 120px;
+  width: 100px;
   height: auto;
   display: block;
 }
@@ -279,24 +288,14 @@ header nav .nav-sections ul > li > ul > li {
     display: inline-flex;
     align-items: center;
     flex-shrink: 0;
-    width: 9px;
-    height: 6px;
-    transition: transform 0.2s ease;
+    width: 24px;
+    height: 24px;
   }
 
   header nav .nav-sections .nav-drop .nav-drop-icon svg {
-    width: 9px;
-    height: 6px;
+    width: 24px;
+    height: 24px;
     display: block;
-  }
-
-  /* chevron: always dark navy */
-  header nav .nav-sections .nav-drop .nav-drop-icon svg path {
-    fill: var(--color--icon-brand-01, #0d004d);
-  }
-
-  header nav .nav-sections .nav-drop[aria-expanded='true'] .nav-drop-icon {
-    transform: rotate(180deg);
   }
 
   header nav .nav-sections ul {
@@ -321,17 +320,18 @@ header nav .nav-sections ul > li > ul > li {
     align-items: flex-start;
     gap: 48px;
     position: fixed;
-    left: var(--space--x16);
-    right: var(--space--x16);
-    top: var(--nav-height);
+    left: var(--space--x21);
+    right: var(--space--x21);
+    top: 87px;
     width: auto;
-    padding: 32px var(--space--x16);
+    padding: var(--space--x9);
     background: var(--color--ui-background-light);
     border-radius: 0 0 var(--corner--x2, 8px) var(--corner--x2, 8px);
-    box-shadow: 0 4px 20px rgb(0 0 0 / 10%);
+    border-top: var(--border--x1) solid #DAD8E3;
     white-space: normal;
     z-index: 99;
     box-sizing: border-box;
+    box-shadow: 0 4px 12px rgb(0 0 0 / 8%);
   }
 
   /* Remove caret triangle */
@@ -633,4 +633,32 @@ header nav .nav-tools .nav-user-signout {
 
 header nav .nav-tools .nav-user-signout:hover {
   background: #f6f5fa;
+}
+
+header nav .nav-sections .nav-drop {
+  .nav-drop-icon {
+    svg {
+      path {
+        transition: transform 0.25s cubic-bezier(.6, 0, .2, .5);
+      }
+
+      .chevron-down-left-stroke {
+        transform-origin: 35% 50%;
+      }
+
+      .chevron-down-right-stroke {
+        transform-origin: 65% 50%;
+      }
+    }
+  }
+
+  &[aria-expanded='true'] {
+    .chevron-down-left-stroke {
+      transform: rotate(-90deg);
+    }
+
+    .chevron-down-right-stroke {
+      transform: rotate(90deg);
+    }
+  }
 }
