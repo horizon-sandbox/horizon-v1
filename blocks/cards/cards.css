@@ -18,8 +18,8 @@ main > .section.cards-container > div {
   position: relative;
   top: 0;
   transform: translateY(-260px);
-  max-width: none;
-  margin: 0;
+  max-width: 1440px;
+  margin: 0 auto;
   padding: 0 var(--space--x16);
 }
 
@@ -143,16 +143,7 @@ main > .section.cards-container > div {
 
 .cards .cards-card-body > p:last-child a:any-link::after,
 .cards .cards-card-body .button::after {
-  content: "";
-  flex: none;
-  display: inline;
-  mask-image: url("/icons/chevron-right.svg");
-  mask-size: 100%;
-  mask-repeat: no-repeat;
-  mask-position: center;
-  background: currentColor;
-  padding: 9px;
-  margin-inline-start:.4em;
+  content: '>';
 }
 
 .cards .cards-card-body > p:last-child a:any-link:hover,
