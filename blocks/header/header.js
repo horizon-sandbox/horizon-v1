@@ -1,5 +1,6 @@
-import { getMetadata } from '../../scripts/aem.js';
+import { getMetadata, decorateIcons } from '../../scripts/aem.js';
 import { loadFragment } from '../fragment/fragment.js';
+import { login, logout, getUser } from '../../scripts/ies-auth.js';
 
 // media query match that indicates mobile/tablet width
 const isDesktop = window.matchMedia('(min-width: 900px)');
@@ -137,10 +138,38 @@ export default async function decorate(block) {
     brandLink.closest('.button-container').className = '';
   }
 
+  // If the brand section contains a plain link to an image URL (e.g. SVG authored
+  // as a text hyperlink because da.live has no insert-image option), convert it
+  // into a proper <img> wrapped in an <a>.
+  const brandImgLink = navBrand.querySelector('a:not(.button)');
+  if (brandImgLink && !navBrand.querySelector('img')) {
+    const href = brandImgLink.getAttribute('href') || '';
+    if (/\.(svg|png|jpg|jpeg|webp)(\?|$)/i.test(href)) {
+      const linkText = brandImgLink.textContent.trim();
+      // Use link text as alt/aria-label unless it's just the raw URL
+      const label = linkText && linkText !== href ? linkText : 'Home';
+      const img = document.createElement('img');
+      img.src = href;
+      img.alt = label;
+      img.loading = 'eager';
+      const wrapper = document.createElement('a');
+      wrapper.href = '/';
+      wrapper.setAttribute('aria-label', label);
+      wrapper.append(img);
+      brandImgLink.replaceWith(wrapper);
+    }
+  }
+
   const navSections = nav.querySelector('.nav-sections');
   if (navSections) {
     navSections.querySelectorAll(':scope .default-content-wrapper > ul > li').forEach((navSection) => {
-      if (navSection.querySelector('ul')) navSection.classList.add('nav-drop');
+      if (navSection.querySelector('ul')) {
+        navSection.classList.add('nav-drop');
+        // inject chevron icon
+        const chevron = document.createElement('span');
+        chevron.className = 'icon icon-chevron-down nav-drop-icon';
+        navSection.append(chevron);
+      }
       navSection.addEventListener('click', () => {
         if (isDesktop.matches) {
           const expanded = navSection.getAttribute('aria-expanded') === 'true';
@@ -148,6 +177,25 @@ export default async function decorate(block) {
           navSection.setAttribute('aria-expanded', expanded ? 'false' : 'true');
         }
       });
+      navSection.addEventListener('mouseenter', () => {
+        if (isDesktop.matches) {
+          toggleAllNavSections(navSections);
+          navSection.setAttribute('aria-expanded', 'true');
+        }
+      });
+      let closeTimer;
+      navSection.addEventListener('mouseleave', () => {
+        if (isDesktop.matches) {
+          closeTimer = setTimeout(() => navSection.setAttribute('aria-expanded', 'false'), 100);
+        }
+      });
+      const panel = navSection.querySelector('ul');
+      if (panel) {
+        panel.addEventListener('mouseenter', () => clearTimeout(closeTimer));
+        panel.addEventListener('mouseleave', () => {
+          if (isDesktop.matches) navSection.setAttribute('aria-expanded', 'false');
+        });
+      }
     });
   }
 
@@ -164,8 +212,104 @@ export default async function decorate(block) {
   toggleMenu(nav, navSections, isDesktop.matches);
   isDesktop.addEventListener('change', () => toggleMenu(nav, navSections, isDesktop.matches));
 
+  // Decorate tools section – strip button classes, inject icons, add cart
+  const navTools = nav.querySelector('.nav-tools');
+  if (navTools) {
+    navTools.querySelectorAll('a').forEach((a) => {
+      const text = a.textContent.trim().toLowerCase();
+      // Strip button decoration applied by decorateMain
+      a.classList.remove('button', 'primary', 'secondary');
+      if (a.parentElement?.classList.contains('button-container')) {
+        a.parentElement.classList.remove('button-container');
+      }
+      // "Get Support" / "help" → icon-only help icon
+      if (text.includes('support') || text.includes('help')) {
+        const iconSpan = document.createElement('span');
+        iconSpan.className = 'icon icon-help';
+        const label = a.textContent.trim();
+        a.setAttribute('aria-label', label);
+        a.textContent = '';
+        a.classList.add('nav-tool-icon');
+        a.append(iconSpan);
+      }
+      // "Sign In" → primary CTA pill button
+      if (text.includes('sign') || text.includes('log in')) {
+        a.classList.add('nav-cta');
+      }
+    });
+    // Reorder: move Sign In (nav-cta) before the first icon-only tool link
+    const toolsWrapper = navTools.querySelector('.default-content-wrapper');
+    if (toolsWrapper) {
+      const ctaLink = toolsWrapper.querySelector('a.nav-cta');
+      const firstIconLink = toolsWrapper.querySelector('a.nav-tool-icon');
+      if (ctaLink && firstIconLink) {
+        // Walk up to the <li> so insertBefore operates on siblings in the <ul>
+        const ctaNode = ctaLink.closest('li') ?? ctaLink.parentElement ?? ctaLink;
+        const anchorNode = firstIconLink.closest('li') ?? firstIconLink.parentElement ?? firstIconLink;
+        if (ctaNode.parentElement === anchorNode.parentElement) {
+          anchorNode.parentElement.insertBefore(ctaNode, anchorNode);
+        }
+      }
+    }
+    // Replace Sign In anchor with auth-aware element
+    const signInAnchor = toolsWrapper ? toolsWrapper.querySelector('a.nav-cta') : null;
+    if (signInAnchor) {
+      const user = getUser();
+      const liEl = signInAnchor.closest('li') ?? signInAnchor.parentElement;
+      if (user) {
+        const greeting = document.createElement('span');
+        greeting.className = 'nav-user-greeting';
+        greeting.textContent = `Hi, ${user.firstName || user.email}`;
+        const signoutEl = document.createElement('button');
+        signoutEl.className = 'nav-tool-signout';
+        signoutEl.type = 'button';
+        signoutEl.textContent = 'Sign Out';
+        liEl.replaceWith(greeting, signoutEl);
+      } else {
+        const signinEl = document.createElement('button');
+        signinEl.className = 'nav-cta nav-tool-signin';
+        signinEl.type = 'button';
+        signinEl.textContent = 'Sign In';
+        liEl.replaceWith(signinEl);
+      }
+    }
+
+    // Auth button handlers
+    const signinBtn = navTools.querySelector('.nav-tool-signin');
+    if (signinBtn) {
+      signinBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        login();
+      });
+    }
+    const signoutBtn = navTools.querySelector('.nav-tool-signout');
+    if (signoutBtn) {
+      signoutBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        logout();
+      });
+    }
+
+    // Inject cart icon link after existing tools
+    const cartLink = document.createElement('a');
+    cartLink.href = '/cart';
+    cartLink.setAttribute('aria-label', 'Cart');
+    cartLink.className = 'nav-tool-icon';
+    cartLink.innerHTML = '<span class="icon icon-cart"></span>';
+    if (toolsWrapper) toolsWrapper.append(cartLink);
+    await decorateIcons(nav);
+  }
+
   const navWrapper = document.createElement('div');
   navWrapper.className = 'nav-wrapper';
   navWrapper.append(nav);
   block.append(navWrapper);
+
+  // Add solid background once user scrolls away from the top
+  const headerEl = block.closest('header');
+  const onScroll = () => {
+    headerEl.classList.toggle('is-scrolled', window.scrollY > 10);
+  };
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
 }

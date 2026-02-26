@@ -2,7 +2,7 @@
 
 main > .section.cards-section,
 main > .section.cards-container {
-  margin-top: 0;
+  margin: 0;
   position: relative;
   z-index: 3;
   padding-bottom: 120px;
@@ -20,7 +20,7 @@ main > .section.cards-container > div {
   transform: translateY(-260px);
   max-width: none;
   margin: 0;
-  padding: 0 24px;
+  padding: 0 var(--space--x16);
 }
 
 /* ─── Carousel: mobile & tablet ─── */
@@ -181,7 +181,7 @@ main > .section.cards-container > div {
 
   .cards {
     top: 0;
-    transform: translateY(-585px);
+    transform: translateY(-385px);
     padding: 0 64px;
   }
 

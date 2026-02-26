@@ -1,9 +1,36 @@
 /* header and nav layout */
 header .nav-wrapper {
-  background-color: var(--background-color);
+  background-color: transparent;
+  color: #fff;
   width: 100%;
-  z-index: 2;
+  z-index: 100;
   position: fixed;
+  top: 0;
+  left: 0;
+  transition: background-color 0.25s ease, color 0.25s ease, box-shadow 0.25s ease;
+}
+
+header.is-scrolled .nav-wrapper,
+header .nav-wrapper:has(.nav-drop[aria-expanded='true']) {
+  color: #0d004d;
+}
+
+header.is-scrolled .nav-wrapper::before,
+header .nav-wrapper:has(.nav-drop[aria-expanded='true'])::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--color--ui-background-light);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 8%);
+  z-index: -1;
+}
+
+header .nav-wrapper:has(.nav-drop[aria-expanded='true'])::before {
+  top: var(--space--x3);
+  left: var(--space--x16);
+  right: var(--space--x16);
+  border-radius: var(--corner--x2, 8px) var(--corner--x2, 8px) 0 0;
+  box-shadow: none;
 }
 
 header nav {
@@ -32,15 +59,17 @@ header nav[aria-expanded='true'] {
 
 @media (width >= 900px) {
   header .nav-wrapper {
-    position: relative;
+    position: fixed;
   }
 
   header nav {
     display: flex;
+    align-items: center;
     justify-content: space-between;
-    gap: 0 32px;
-    max-width: 1264px;
-    padding: 0 32px;
+    gap: 40px;
+    max-width: 1440px;
+    padding: 16px var(--space--x16);
+    height: auto;
   }
 
   header nav[aria-expanded='true'] {
@@ -58,6 +87,37 @@ header nav a:any-link {
   color: currentcolor;
 }
 
+/* Reset button decoration that decorateMain applies to standalone links */
+header nav a.button:any-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0;
+  margin: 0;
+  background: none;
+  border: none;
+  border-radius: 0;
+  font-weight: inherit;
+  font-size: inherit;
+  text-overflow: unset;
+  overflow: visible;
+  white-space: normal;
+  color: currentcolor;
+}
+
+header nav .button-container {
+  margin: 0;
+}
+
+/* Override global button.primary hover which sets a dark background */
+header nav a.button.primary:hover,
+header nav a.button.primary:focus-visible {
+  background: none;
+  background-color: transparent;
+  border-color: transparent;
+  color: currentcolor;
+}
+
 /* hamburger */
 header nav .nav-hamburger {
   grid-area: hamburger;
@@ -72,7 +132,7 @@ header nav .nav-hamburger button {
   border: 0;
   border-radius: 0;
   padding: 0;
-  background-color: var(--background-color);
+  background-color: transparent;
   color: inherit;
   overflow: initial;
   text-overflow: initial;
@@ -142,15 +202,17 @@ header nav[aria-expanded='true'] .nav-hamburger-icon::after {
 /* brand */
 header .nav-brand {
   grid-area: brand;
-  flex-basis: 128px;
+  flex-basis: 120px;
+  flex-shrink: 0;
   font-size: var(--heading-font-size-s);
   font-weight: 700;
   line-height: 1;
 }
 
 header nav .nav-brand img {
-  width: 128px;
+  width: 120px;
   height: auto;
+  display: block;
 }
 
 /* sections */
@@ -170,11 +232,15 @@ header nav[aria-expanded='true'] .nav-sections {
 header nav .nav-sections ul {
   list-style: none;
   padding-left: 0;
-  font-size: var(--body-font-size-s);
+  font-size: 12px;
 }
 
+/* Nav section labels: always dark — readable on both transparent and white header */
 header nav .nav-sections ul > li {
-  font-weight: 500;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  color: #0d004d;
 }
 
 header nav .nav-sections ul > li > ul {
@@ -183,6 +249,10 @@ header nav .nav-sections ul > li > ul {
 
 header nav .nav-sections ul > li > ul > li {
   font-weight: 400;
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: var(--body-font-size-xs, 12px);
+  color: #0d004d;
 }
 
 @media (width >= 900px) {
@@ -198,33 +268,40 @@ header nav .nav-sections ul > li > ul > li {
 
   header nav .nav-sections .nav-drop {
     position: relative;
-    padding-right: 16px;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
     cursor: pointer;
   }
 
-  header nav .nav-sections .nav-drop::after {
-    content: '';
-    display: inline-block;
-    position: absolute;
-    top: 0.5em;
-    right: 2px;
-    transform: rotate(135deg);
-    width: 6px;
+  /* chevron SVG icon */
+  header nav .nav-sections .nav-drop .nav-drop-icon {
+    display: inline-flex;
+    align-items: center;
+    flex-shrink: 0;
+    width: 9px;
     height: 6px;
-    border: 2px solid currentcolor;
-    border-radius: 0 1px 0 0;
-    border-width: 2px 2px 0 0;
+    transition: transform 0.2s ease;
   }
 
-  header nav .nav-sections .nav-drop[aria-expanded='true']::after {
-    top: unset;
-    bottom: 0.5em;
-    transform: rotate(315deg);
+  header nav .nav-sections .nav-drop .nav-drop-icon svg {
+    width: 9px;
+    height: 6px;
+    display: block;
+  }
+
+  /* chevron: always dark navy */
+  header nav .nav-sections .nav-drop .nav-drop-icon svg path {
+    fill: var(--color--icon-brand-01, #0d004d);
+  }
+
+  header nav .nav-sections .nav-drop[aria-expanded='true'] .nav-drop-icon {
+    transform: rotate(180deg);
   }
 
   header nav .nav-sections ul {
     display: flex;
-    gap: 24px;
+    gap: 32px;
     margin: 0;
   }
 
@@ -235,38 +312,224 @@ header nav .nav-sections ul > li > ul > li {
 
   header nav .nav-sections .default-content-wrapper > ul > li > ul {
     display: none;
-    position: relative;
   }
 
+  /* Mega-menu panel */
   header nav .nav-sections .default-content-wrapper > ul > li[aria-expanded='true'] > ul {
-    display: block;
-    position: absolute;
-    left: -24px;
-    width: 200px;
-    top: 150%;
-    padding: 16px;
-    background-color: var(--light-color);
-    white-space: initial;
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 48px;
+    position: fixed;
+    left: var(--space--x16);
+    right: var(--space--x16);
+    top: var(--nav-height);
+    width: auto;
+    padding: 32px var(--space--x16);
+    background: var(--color--ui-background-light);
+    border-radius: 0 0 var(--corner--x2, 8px) var(--corner--x2, 8px);
+    box-shadow: 0 4px 20px rgb(0 0 0 / 10%);
+    white-space: normal;
+    z-index: 99;
+    box-sizing: border-box;
   }
 
+  /* Remove caret triangle */
   header nav .nav-sections .default-content-wrapper > ul > li > ul::before {
-    content: '';
-    position: absolute;
-    top: -8px;
-    left: 16px;
-    width: 0;
-    height: 0;
-    border-left: 8px solid transparent;
-    border-right: 8px solid transparent;
-    border-bottom: 8px solid var(--light-color);
+    display: none;
   }
 
-  header nav .nav-sections .default-content-wrapper > ul > li > ul > li {
-    padding: 8px 0;
+  /* Each column */
+  header nav .nav-sections .default-content-wrapper > ul > li[aria-expanded='true'] > ul > li {
+    flex: 1;
+    min-width: 160px;
+    max-width: 280px;
+    padding: 0;
   }
+
+  /* Column header (p > a) */
+  header nav .nav-sections .default-content-wrapper > ul > li[aria-expanded='true'] > ul > li > p {
+    margin: 0 0 12px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid rgb(13 0 77 / 15%);
+  }
+
+  /* Simple items without a column header (direct li > a) */
+  header nav .nav-sections .default-content-wrapper > ul > li[aria-expanded='true'] > ul > li > a {
+    color: var(--color--text-brand-01, #0d004d);
+    font-size: 14px;
+    font-weight: 400;
+    text-decoration: none;
+  }
+
+  header nav .nav-sections .default-content-wrapper > ul > li[aria-expanded='true'] > ul > li > p > a,
+  header nav .nav-sections .default-content-wrapper > ul > li[aria-expanded='true'] > ul > li > p > strong > a {
+    color: var(--color--text-brand-01, #0d004d);
+    font-feature-settings: 'liga' off;
+    font-family: var(--font-family-body, 'Plus Jakarta Sans');
+    font-size: var(--font-size-b1, 16px);
+    font-style: normal;
+    font-weight: 600;
+    line-height: 160%;
+    text-decoration: none;
+  }
+
+  /* Sub-links */
+  header nav .nav-sections .default-content-wrapper > ul > li[aria-expanded='true'] > ul > li > ul {
+    display: block;
+    position: static;
+    padding: 0;
+    background: none;
+    box-shadow: none;
+    width: auto;
+  }
+
+  header nav .nav-sections .default-content-wrapper > ul > li[aria-expanded='true'] > ul > li > ul > li {
+    padding: 6px 0;
+  }
+
+  header nav .nav-sections .default-content-wrapper > ul > li[aria-expanded='true'] > ul > li > ul > li > a {
+    color: var(--color--text-link, #512eab);
+    font-feature-settings: 'liga' off;
+    font-family: var(--font-family-body, 'Plus Jakarta Sans');
+    font-size: var(--font-size-minor, 14px);
+    font-style: normal;
+    font-weight: 600;
+    line-height: 160%;
+    text-decoration: none;
+  }
+
+  header nav .nav-sections .default-content-wrapper > ul > li[aria-expanded='true'] > ul > li > ul > li > a:hover {
+    color: var(--color--text-link, #512eab);
+  }
+
 }
 
 /* tools */
 header nav .nav-tools {
   grid-area: tools;
+}
+
+header nav .nav-tools .default-content-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+/* Flatten <p> wrappers so <a> tags participate directly in the flex row */
+header nav .nav-tools .default-content-wrapper > p {
+  display: contents;
+}
+
+/* Also handle if tools section has <ul> wrapping */
+/* stylelint-disable-next-line no-descending-specificity */
+header nav .nav-tools ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: contents;
+}
+
+/* stylelint-disable-next-line no-descending-specificity */
+header nav .nav-tools li {
+  display: contents;
+}
+
+/* stylelint-disable-next-line no-descending-specificity */
+header nav .nav-tools em {
+  display: contents;
+  font-style: normal;
+}
+
+/* Contact Sales — always #512eab, readable on light hero bg and white scrolled */
+header nav .nav-tools a:any-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 8px;
+  border-radius: 0;
+  background: none;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  color: #512eab;
+  text-decoration: none;
+  transition: opacity 0.15s ease;
+}
+
+header nav .nav-tools a:hover {
+  opacity: 0.75;
+}
+
+/* Sign In pill — always purple, white text */
+header nav .nav-tools a.nav-cta:any-link,
+header nav .nav-tools button.nav-cta {
+  height: 32px;
+  padding: 0 24px;
+  border-radius: var(--corner--max, 1440px);
+  background: var(--color--interactive-primary, #512eab);
+  border: none;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  font-style: normal;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background-color 0.15s ease, opacity 0.15s ease;
+}
+
+header nav .nav-tools a.nav-cta:hover,
+header nav .nav-tools button.nav-cta:hover {
+  background-color: #3b1e8e;
+  opacity: 1;
+}
+
+/* Icon-only tool buttons — always dark navy */
+header nav .nav-tools a.nav-tool-icon:any-link {
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border-radius: 0;
+  justify-content: center;
+  flex-shrink: 0;
+  color: #0d004d;
+}
+
+header nav .nav-tools a.nav-tool-icon:hover {
+  opacity: 0.7;
+}
+
+header nav .nav-tools .icon {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+header nav .nav-tools .icon svg {
+  width: 24px;
+  height: 24px;
+}
+
+/* Sign Out — outlined */
+header nav .nav-tools .nav-tool-signout {
+  background: transparent;
+  border: 1px solid var(--color--text-tertiary, #ccc);
+  color: var(--color--text-tertiary);
+  cursor: pointer;
+  font-family: inherit;
+}
+
+header nav .nav-tools .nav-tool-signout:hover {
+  filter: brightness(1.1);
+}
+
+/* User greeting */
+header nav .nav-tools .nav-user-greeting {
+  color: var(--color--text-brand-01);
+  font-size: var(--typesize-minor);
+  font-weight: var(--typeweight--semibold);
+  white-space: nowrap;
 }

@@ -1,18 +1,15 @@
 /* stylelint-disable custom-property-pattern */
 
-body.has-custom-hero header {
-	display: none;
-}
-
-body.has-custom-hero header .header {
-	display: none;
-}
-
-main > .section.hero-section {
+main > .section.hero-section,
+main > .section:has(.hero),
+main > div:first-child:has(.hero) {
 	margin: 0;
+	margin-top: calc(-3.5 * var(--nav-height));
 }
 
-main > .section.hero-section > div {
+main > .section.hero-section > div,
+main > .section:has(.hero) > div,
+main > div:first-child:has(.hero) > div {
 	max-width: none;
 	padding: 0;
 }
@@ -59,220 +56,7 @@ main > .section.hero-section > div {
 	max-width: none;
 	min-height: calc(clamp(700px, 95vh, 980px) - var(--space--x3));
 	margin: 0 auto;
-	padding: 0 64px var(--space--x22);
-}
-
-.hero .hero-topbar {
-	display: flex;
-	align-items: center;
-	justify-content: flex-start;
-	gap: var(--space--x4);
-	flex-wrap: nowrap;
-	background: var(--color--ui-background-brand-04);
-	padding: var(--space--x4) 64px var(--space--x4) 24px;
-	width: 100%;
-	position: relative;
-	z-index: 2;
-	box-sizing: border-box;
-}
-
-.hero .hero-brand-links {
-	display: flex;
-	align-items: center;
-	gap: var(--space--x5);
-	flex-wrap: nowrap;
-}
-
-.hero .hero-logo {
-	display: inline-flex;
-	text-decoration: none;
-}
-
-.hero .hero-logo img {
-	display: block;
-	width: 144px;
-	height: auto;
-}
-
-.hero .hero-topbar a {
-	color: var(--color--text-brand-01);
-	text-decoration: none;
-	font-size: var(--typesize-minor);
-	font-weight: var(--typeweight--semibold);
-	line-height: var(--leading--1-2);
-}
-
-.hero .hero-nav-item {
-	position: relative;
-}
-
-.hero .hero-nav-trigger {
-	display: inline-flex;
-	align-items: center;
-	margin: 0;
-	border: 0;
-	padding: 0;
-	background: transparent;
-	color: var(--color--text-brand-01);
-	font-family: inherit;
-	font-size: var(--typesize-minor);
-	font-weight: var(--typeweight--semibold);
-	line-height: var(--leading--1-2);
-	cursor: pointer;
-}
-
-
-.hero .hero-nav-trigger::after {
-	content: '>';
-	display: inline-block;
-	margin-left: var(--space--x2);
-	font-weight: var(--typeweight--bold);
-	transform-origin: center;
-	transition: transform 0.2s ease;
-}
-
-.hero .hero-nav-item:hover .hero-nav-trigger::after,
-.hero .hero-nav-item:focus-within .hero-nav-trigger::after {
-	transform: rotate(90deg);
-}
-
-.hero .hero-nav-menu {
-	position: absolute;
-	top: 100%;
-	left: 0;
-	min-width: 220px;
-	margin: 0;
-	padding: var(--space--x3) 0;
-	list-style: none;
-	background: var(--color--ui-background-light);
-	border-radius: var(--corners-card);
-	z-index: 5;
-	display: none;
-}
-
-.hero .hero-nav-item:hover .hero-nav-menu,
-.hero .hero-nav-item:focus-within .hero-nav-menu {
-	display: block;
-}
-
-.hero .hero-nav-menu li {
-	margin: 0;
-}
-
-.hero .hero-nav-menu a {
-	display: block;
-	padding: var(--space--x2) var(--space--x4);
-	color: var(--color--text-brand-01);
-	font-size: var(--typesize-minor);
-	line-height: var(--leading--1-2);
-}
-
-.hero .hero-nav-menu a:hover {
-	background: var(--color--ui-background-med);
-}
-
-.hero .hero-tools-links {
-	display: flex;
-	align-items: center;
-	gap: var(--space--x5);
-	flex-wrap: nowrap;
-	margin-left: auto;
-}
-
-.hero .hero-tools-links .hero-tool {
-	height: 32px;
-	border-radius: var(--corners-pill);
-	padding: 0 var(--space--x6);
-	font-size: var(--typesize-minor);
-	font-weight: var(--typeweight--semibold);
-	line-height: 32px;
-	white-space: nowrap;
-	text-decoration: none;
-	display: inline-flex;
-	align-items: center;
-}
-
-/* Contact Sales — plain text link */
-.hero .hero-tools-links .hero-tool-sales {
-	background: transparent;
-	border: 0;
-	padding: 0;
-	border-radius: 0;
-	color: var(--color--text-tertiary);
-}
-
-.hero .hero-tools-links .hero-tool-sales:hover {
-	text-decoration: underline;
-}
-
-/* Sign In — primary filled */
-.hero .hero-tools-links .hero-tool-signin {
-	background: var(--color--interactive-primary, #512eab);
-	border: 1px solid transparent;
-	color: #fff;
-	cursor: pointer;
-	font-family: inherit;
-}
-
-.hero .hero-tools-links .hero-tool-signin:hover {
-	filter: brightness(1.1);
-}
-
-/* Sign Out — outlined */
-.hero .hero-tools-links .hero-tool-signout {
-	background: transparent;
-	border: 1px solid var(--color--text-tertiary, #ccc);
-	color: var(--color--text-tertiary);
-	cursor: pointer;
-	font-family: inherit;
-}
-
-.hero .hero-tools-links .hero-tool-signout:hover {
-	filter: brightness(1.1);
-}
-
-.hero .hero-tools-links .hero-user-greeting {
-	color: var(--color--text-brand-01);
-	font-size: var(--typesize-minor);
-	font-weight: var(--typeweight--semibold);
-	white-space: nowrap;
-}
-
-/* Icon-only buttons — 24px mask-image */
-.hero .hero-tools-links .hero-tool-icon {
-	width: 24px;
-	height: 24px;
-	padding: 0;
-	border: none;
-	border-radius: 0;
-	background: transparent;
-	color: var(--color--icon-tertiary);
-	line-height: 1;
-	justify-content: center;
-	flex-shrink: 0;
-}
-
-.hero .hero-tools-links .hero-tool-icon::before {
-	content: '';
-	display: inline-block;
-	inline-size: 24px;
-	block-size: 24px;
-	mask-size: 100%;
-	mask-repeat: no-repeat;
-	mask-position: center;
-	background: currentcolor;
-}
-
-.hero .hero-tools-links .hero-tool-support::before {
-	mask-image: url('/icons/help.svg');
-	/* stylelint-disable-next-line property-no-vendor-prefix */
-	-webkit-mask-image: url('/icons/help.svg');
-}
-
-.hero .hero-tools-links .hero-tool-cart::before {
-	mask-image: url('/icons/cart.svg');
-	/* stylelint-disable-next-line property-no-vendor-prefix */
-	-webkit-mask-image: url('/icons/cart.svg');
+	padding: var(--nav-height) 64px var(--space--x22);
 }
 
 .hero .hero-content {
@@ -284,6 +68,7 @@ main > .section.hero-section > div {
 }
 
 .hero h1 {
+  padding-top: 175px;
 	margin: 0;
 	color: var(--color--text-brand-01);
 	font-size: var(--typesize-h1);
@@ -313,10 +98,10 @@ main > .section.hero-section > div {
 	align-items: center;
 	gap: var(--space--x4);
 	height: 50px;
-	border-radius: var(--corners-pill);
+	border-radius: var(--corner--max, 1440px);
 	border: var(--border--x1) solid var(--color--ui-border-03, #512eab);
-	background: #fff;
-	box-shadow: 0 4px 4px 0 rgb(0 0 0 / 10%);
+	background: var(--color--ui-field, #fff);
+	box-shadow: var(--effect--shadow-neutral-01, 0 2px 4px 0 rgb(0 0 0 / 25%));
 	padding: 0 var(--space--x1-half) 0 0;
 	overflow: hidden;
 }
@@ -341,33 +126,38 @@ main > .section.hero-section > div {
 
 .hero .hero-search button {
 	flex-shrink: 0;
-	width: 38px;
-	height: 38px;
-	margin-right: var(--space--x1-half);
+	position: relative;
+	width: 40px;
+	height: 40px;
 	padding: 0;
-	border: 0;
-	border-radius: var(--corners-circle);
-	background: var(--color--interactive-primary);
+	border: none;
+	border-radius: var(--corner--max, 1440px);
+	background: conic-gradient(from 225deg, var(--color--icon-accent-01-primary, #df41cf), var(--color--icon-brand-02, #512eab), var(--color--icon-accent-02-primary, #ffce00), var(--color--icon-accent-01-primary, #df41cf));
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
 	appearance: none;
 	cursor: pointer;
 	z-index: 2;
+	box-sizing: border-box;
 }
 
-.hero .hero-search button img {
+.hero .hero-search button::before {
+	content: '';
+	position: absolute;
+	inset: 3px;
+	border-radius: inherit;
+	background: var(--color--icon-brand-02, #512eab);
+	z-index: 0;
+}
+
+.hero .hero-search button img,
+.hero .hero-search button .icon {
+	position: relative;
+	z-index: 1;
 	width: 18px;
 	height: 18px;
 	filter: brightness(0) invert(1);
-}
-
-.hero .hero-search button.is-ai-ready {
-	background: var(--color--icon-accent-02-primary, #ffce00);
-}
-
-.hero .hero-search button.is-ai-ready img {
-	filter: none;
 }
 
 @media (width >= 900px) {
@@ -397,7 +187,7 @@ main > .section.hero-section > div {
 	}
 
 	.hero .hero-content {
-		margin-top: 154px;
+		margin-top: calc(var(--nav-height) + 95px);
 	}
 
 	.hero .hero-topbar {
@@ -414,26 +204,39 @@ main > .section.hero-section > div {
 	color: #000 !important;
 }
 
+/* Prevent overscroll bounce from propagating to the page */
+.ais-ChatMessages {
+	overflow-y: auto;
+	overscroll-behavior: contain;
+}
+
+.ais-Chat,
+#hero-algolia-chat dialog,
+#hero-algolia-chat [role="dialog"] {
+	overscroll-behavior: contain;
+}
+
 /* Algolia chat inline product tiles (links returned in AI text responses) */
 .ais-chat-product-tiles {
-	display: grid;
-	grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-	gap: var(--space--x3);
+	display: flex;
+	flex-direction: column;
+	gap: var(--space--x2);
 	margin-top: var(--space--x3);
 }
 
 .ais-chat-product-tile {
 	display: flex;
-	flex-direction: column;
-	padding: 0;
+	flex-direction: row;
+	gap: var(--space--x3);
+	padding: var(--space--x3);
 	border-radius: var(--corners-card);
-	border: 1px solid var(--color--ui-border-01, #e0dfe8);
+	border: 1px solid rgb(81 46 171 / 25%);
 	background: var(--color--ui-background-primary, #fff);
 	text-decoration: none;
 	color: inherit;
 	transition: box-shadow 0.15s ease, border-color 0.15s ease;
-	min-height: 64px;
 	overflow: hidden;
+	align-items: flex-start;
 }
 
 .ais-chat-product-tile:hover {
@@ -443,15 +246,18 @@ main > .section.hero-section > div {
 
 .ais-chat-product-tile--loading {
 	animation: ais-chat-loader-skeleton 1.4s ease-in-out infinite;
-	background: rgb(81 46 171 / 8%);
+	background: rgb(81 46 171 / 6%);
 	border-color: transparent;
+	min-height: 96px;
 }
 
 .ais-chat-product-tile-image {
-	width: 100%;
+	flex-shrink: 0;
+	width: 72px;
 	aspect-ratio: 3 / 4;
 	background: var(--color--ui-background-secondary, #f4f4f9);
 	overflow: hidden;
+	border-radius: 4px;
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -465,21 +271,21 @@ main > .section.hero-section > div {
 }
 
 .ais-chat-product-tile-body {
-	padding: var(--space--x3);
 	display: flex;
 	flex-direction: column;
 	gap: var(--space--x1);
 	flex: 1;
+	min-width: 0;
 }
 
 .ais-chat-product-tile-title {
-	font-size: var(--typesize-milli);
+	font-size: var(--typesize-default);
 	font-weight: var(--typeweight--semibold);
-	color: var(--color--text-link);
+	color: var(--color--text-primary);
 	line-height: var(--leading--1-3);
 	display: -webkit-box;
-	-webkit-line-clamp: 3;
-  line-clamp: 3;
+	-webkit-line-clamp: 2;
+	line-clamp: 2;
 	-webkit-box-orient: vertical;
 	overflow: hidden;
 }
@@ -492,8 +298,9 @@ main > .section.hero-section > div {
 .ais-chat-product-tile-price {
 	font-size: var(--typesize-milli);
 	font-weight: var(--typeweight--semibold);
-	color: var(--color--text-brand-01);
+	color: var(--color--text-secondary);
 	margin-top: auto;
+	padding-top: var(--space--x1);
 }
 
 /* Algolia chat per-response loading indicator */

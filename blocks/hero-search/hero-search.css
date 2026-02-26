@@ -1,0 +1,195 @@
+.hero-search {
+  position: relative;
+  overflow: hidden;
+  border-radius: 24px;
+  background-color: transparent;
+  min-height: auto;
+  padding: 40px 24px;
+}
+
+.hero-search .hero-search-background {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.hero-search .hero-search-background picture,
+.hero-search .hero-search-background img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  mix-blend-mode: color-burn;
+}
+
+.hero-search .hero-search-background picture {
+  position: absolute;
+  inset: 0;
+}
+
+.hero-search .hero-search-background img {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  left: 0;
+  top: 0;
+  object-fit: cover;
+  object-position: 72% center;
+  mix-blend-mode: color-burn;
+  opacity: 1;
+}
+
+.hero-search .hero-search-content {
+  position: relative;
+  z-index: 1;
+  max-width: 760px;
+}
+
+body.search-page .hero-search .hero-search-content {
+  max-width: none;
+}
+
+.hero-search .hero-search-eyebrow {
+  margin: 0 0 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-weight: 700;
+  color: var(--pearson-color-text-brand-01, #0d004d);
+  font-size: var(--body-font-size-xs);
+}
+
+.hero-search .hero-search-title {
+  margin: 0;
+  color: var(--pearson-color-text-brand-01, #0d004d);
+  font-family: 'Plus Jakarta Sans', Helvetica, Verdana, sans-serif;
+  font-size: 42px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.hero-search .hero-search-subtitle {
+  margin: 16px 0 0;
+  max-width: 28ch;
+  color: var(--pearson-color-text-brand-01, #0d004d);
+  font-family: 'Plus Jakarta Sans', Helvetica, Verdana, sans-serif;
+  font-size: 24px;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.hero-search .hero-search-form {
+  margin-top: 28px;
+  display: flex;
+  align-items: stretch;
+  gap: 16px;
+  box-sizing: border-box;
+  width: min(100%, 640px);
+  border: var(--pearson-border-x1, 1px) solid var(--pearson-color-ui-border-03, #512eab);
+  border-radius: 999px;
+  background: var(--pearson-color-ui-field, #fff);
+  height: 50px;
+  padding: 0 6px 0 28px;
+  max-width: 100%;
+}
+
+.hero-search .hero-search-input {
+  flex: 1;
+  align-self: stretch;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: var(--pearson-color-text-primary, #060609);
+  font-family: 'Plus Jakarta Sans', Helvetica, Verdana, sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.6;
+}
+
+.hero-search .hero-search-input::placeholder {
+  color: var(--pearson-color-text-quaternary, #6d6886);
+}
+
+.hero-search .hero-search-input:focus {
+  outline: none;
+}
+
+.hero-search .hero-search-submit {
+  flex: 0 0 40px;
+  align-self: center;
+  width: 40px;
+  height: 40px;
+  border: 3px solid #df41cf;
+  border-radius: 50%;
+  background: var(--pearson-color-interactive-primary, #512eab);
+  color: #fff;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0;
+}
+
+.hero-search .hero-search-submit img {
+  width: 18px;
+  height: 18px;
+  display: block;
+  margin: 0 auto;
+}
+
+.section.hero-search-has-shared-background {
+  position: relative;
+  overflow: hidden;
+}
+
+.section.hero-search-has-shared-background::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: var(--hero-search-shared-bg-image);
+  background-position: 71% center;
+  background-size: cover;
+  background-repeat: no-repeat;
+  mix-blend-mode: color-burn;
+  opacity: 1;
+  z-index: 0;
+}
+
+.section.hero-search-has-shared-background .hero-search-container,
+.section.hero-search-has-shared-background .promo-cards-container {
+  position: relative;
+  z-index: 1;
+}
+
+.section.hero-search-has-shared-background > .hero-search-wrapper,
+.section.hero-search-has-shared-background > .promo-cards-wrapper,
+.section.hero-search-has-shared-background > .hero-search-container,
+.section.hero-search-has-shared-background > .promo-cards-container {
+  position: relative;
+  z-index: 1;
+  background-color: transparent;
+}
+
+@media (width >= 600px) {
+  .hero-search {
+    padding: 56px 40px;
+  }
+}
+
+@media (width >= 900px) {
+  .hero-search {
+    min-height: auto;
+    padding: 64px;
+  }
+
+  .hero-search .hero-search-title {
+    font-size: 50px;
+  }
+
+  .hero-search .hero-search-subtitle {
+    margin-top: 20px;
+    max-width: 420px;
+  }
+
+  .hero-search .hero-search-form {
+    margin-top: 36px;
+  }
+}
