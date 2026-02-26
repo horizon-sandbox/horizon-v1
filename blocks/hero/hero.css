@@ -54,7 +54,7 @@ main > div:first-child:has(.hero) > div {
 .hero .hero-shell {
 	position: relative;
 	z-index: 1;
-	max-width: none;
+	max-width: 1440px;
 	min-height: calc(clamp(700px, 95vh, 980px) - var(--space--x3));
 	margin: 0 auto;
 	padding: var(--nav-height) 64px var(--space--x22);
@@ -365,7 +365,7 @@ main > div:first-child:has(.hero) > div {
 	}
 
 	.hero .hero-shell {
-		padding: 0 64px var(--space--x28);
+		padding: 0 var(--space--x24) var(--space--x28);
 	}
 
 	.hero .hero-logo img {
