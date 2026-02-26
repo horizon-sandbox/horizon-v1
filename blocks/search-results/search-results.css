@@ -104,14 +104,23 @@ main > .section.search-results-section > div {
 }
 
 .search-results .search-results-searchbox [class~='ais-SearchBox-submit'] {
+  position: relative;
   width: 40px;
   height: 40px;
-  border-radius: 999px;
-  background: var(--pearson-color-interactive-action, #ffce00);
+  aspect-ratio: 1 / 1;
+  border-radius: 668.571px;
+  border: 3px solid transparent;
+  background:
+    linear-gradient(#fff, #fff) padding-box,
+    conic-gradient(from 225deg, var(--color--icon-accent-01-primary, #df41cf), var(--color--icon-brand-02, #512eab), var(--color--icon-accent-02-primary, #ffce00), var(--color--icon-accent-01-primary, #df41cf)) border-box;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   padding: 0;
+  appearance: none;
+  box-sizing: border-box;
+  cursor: pointer;
+  z-index: 2;
 }
 
 .search-results .search-results-searchbox [class~='ais-SearchBox-submitIcon'] {
@@ -119,10 +128,11 @@ main > .section.search-results-section > div {
 }
 
 .search-results .search-results-searchbox [class~='ais-SearchBox-submit']::before {
-  content: '✧';
-  font-size: 16px;
-  line-height: 1;
-  color: #1f1b39;
+  content: '';
+  display: block;
+  width: 21px;
+  height: 23px;
+  background: url('/icons/agentic-search.svg') center / contain no-repeat;
 }
 
 .search-results .search-results-tabs {
