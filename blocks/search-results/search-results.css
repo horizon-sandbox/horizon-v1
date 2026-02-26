@@ -294,6 +294,13 @@ main > .section.search-results-section > div {
   line-height: 1.4;
 }
 
+.search-results .search-results-card-meta span {
+  border-radius: var(--corner--x1, 4px);
+  border: var(--border--x1, 1px) solid var(--color--ui-border-01, #c1bfff);
+  background: var(--color--ui-background-gray, #fbfaff);
+  padding: 2px 8px;
+}
+
 .search-results .search-results-card-title {
   margin: 0;
   font-size: 16px;
@@ -426,6 +433,7 @@ main > .section.search-results-section > div {
   font-size: 22px;
   font-weight: 700;
   line-height: 1;
+  background: linear-gradient(115deg, var(--color--ui-background-med-gray, #e3e1f9) 0.41%, var(--color--ui-background-light, #fff) 17.57%, var(--color--ui-background-gray, #fbfaff) 80.85%, var(--color--ui-background-med-gray, #e3e1f9) 100%);
 }
 
 .search-results .search-results-chatbot[hidden] {
@@ -489,7 +497,7 @@ main > .section.search-results-section > div {
 
 .search-results .search-results-chatbot-controls {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 8px;
   flex-shrink: 0;
 }
@@ -502,8 +510,9 @@ main > .section.search-results-section > div {
   border: 0;
   background: transparent;
   color: var(--pearson-color-text-brand-01, #0d004d);
-  font-size: 20px;
   line-height: 1;
+  height: 14px;
+  width: 3px;
   cursor: pointer;
 }
 
@@ -546,12 +555,25 @@ main > .section.search-results-section > div {
 }
 
 .search-results .search-results-chatbot-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   border: 0;
   background: transparent;
-  color: var(--pearson-color-text-brand-01, #0d004d);
-  font-size: 22px;
-  line-height: 1;
+  padding: 4px;
+  margin-top: 8.5px;
   cursor: pointer;
+}
+
+.search-results .search-results-chatbot-close img {
+  display: block;
+  width: 15px;
+  height: 2px;
+  background-color: var(--color--icon-brand-01, #0d004d);
+  mask-image: url('/icons/close-icon.svg');
+  mask-size: contain;
+  mask-repeat: no-repeat;
+  mask-position: center;
 }
 
 .search-results .search-results-chatbot-messages {
@@ -570,6 +592,7 @@ main > .section.search-results-section > div {
   justify-content: center;
   width: 40px;
   height: 40px;
+
   /* Union.svg shape via clip-path, conic-gradient matches its angular gradient */
   background: conic-gradient(
     from 90deg,
@@ -579,6 +602,7 @@ main > .section.search-results-section > div {
     rgb(81 46 171) 277deg,
     rgb(155 55 189) 360deg
   );
+
   /* Scale Union.svg path (32x32) to 40x40 */
   clip-path: path('M19.963 0C30.988 0 39.925 8.954 39.925 20 39.925 31.046 30.988 39.999 19.963 40H4.117C2.937 39.968 0.815 39.998 1.123 39.325 2.047 37.3 5.389 35.9 3.246 30.936 1.102 25.973 0 24.036 0 20 0 8.957 8.937 0 19.963 0Z');
   flex-shrink: 0;
@@ -602,13 +626,18 @@ main > .section.search-results-section > div {
   margin: 0;
 }
 
+.search-results .search-results-chatbot-message.is-assistant p {
+  padding-top: 10px;
+}
+
 .search-results .search-results-chatbot-message.is-assistant {
   align-self: flex-start;
   display: flex;
   flex-direction: column;
   max-width: 100%;
   background: transparent;
-  color: #24213a;
+  color: var(--color--text-primary, #060609);
+  font-weight: 400;
   padding: 0;
 }
 
@@ -620,12 +649,37 @@ main > .section.search-results-section > div {
 
 .search-results .search-results-chatbot-message.is-user {
   align-self: flex-end;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  background: transparent;
+  padding: 0;
+  color: var(--color--text-primary, #060609);
+  font-weight: 400;
+}
+
+.search-results .search-results-chatbot-message.is-user p {
   background: #fff;
-  color: #24213a;
+  border-radius: 24px;
+  padding: 12px 20px;
+  margin: 0;
 }
 
 .search-results .search-results-chatbot-message.is-pending {
   opacity: 0.75;
+}
+
+.search-results .search-results-chatbot-message-time {
+  display: block;
+  margin-top: 4px;
+  color: var(--color--text-quaternary, #6d6886);
+  font-size: 11px;
+  font-weight: 300;
+  line-height: 1.4;
+}
+
+.search-results .search-results-chatbot-message.is-user .search-results-chatbot-message-time {
+  text-align: right;
 }
 
 .search-results .search-results-chatbot-form {
@@ -657,9 +711,8 @@ main > .section.search-results-section > div {
 .search-results .search-results-chatbot-input-icon {
   position: absolute;
   left: 16px;
-  color: #9f98c3;
-  font-size: 18px;
-  line-height: 1;
+  width: 20px;
+  height: 20px;
   pointer-events: none;
 }
 
@@ -669,10 +722,12 @@ main > .section.search-results-section > div {
   border: 0;
   border-radius: 999px;
   background: transparent;
-  padding: 0 60px 0 40px;
+  padding: 0 60px 0 calc(16px + 20px + var(--space--x2, 8px));
   font-family: inherit;
   font-size: 16px;
+  font-weight: 500;
   line-height: 1.5;
+  color: var(--color--text-primary, #060609);
 }
 
 .search-results .search-results-chatbot-input::placeholder {
@@ -814,11 +869,64 @@ main > .section.search-results-section > div {
   line-height: 1.2;
 }
 
-.search-results .search-results-chatbot-card-format {
-  margin: 2px 0 0;
+.search-results .search-results-chatbot-card-formats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  list-style: none;
+  margin: 10px 0 0;
+  padding: 0;
+}
+
+.search-results .search-results-chatbot-card-formats li {
+  list-style: none;
+}
+
+.search-results .search-results-chatbot-card-format-btn {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid #d6d2eb;
+  border-radius: 999px;
+  background: #fff;
+  padding: 3px 10px;
+  color: #4d4966;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.4;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.search-results .search-results-chatbot-card-format-btn:hover:not(.is-active) {
+  border-color: #9f98c3;
+  color: #2f2a47;
+}
+
+.search-results .search-results-chatbot-card-format-btn.is-active {
+  border-color: #512eab;
+  background: #512eab;
+  color: #fff;
+  font-weight: 700;
+}
+
+.search-results .search-results-chatbot-card-price {
+  margin: 16px 0 0;
   color: #2f2a47;
   font-size: 17px;
+  font-weight: 700;
   line-height: 1.3;
+  transition: color 0.2s ease;
+}
+
+.search-results .search-results-chatbot-card-price.is-updating {
+  animation: price-flash 0.35s ease;
+}
+
+@keyframes price-flash {
+  0% { color: var(--pearson-color-interactive-primary, #512eab); }
+  100% { color: #2f2a47; }
 }
 
 .search-results .search-results-chatbot-card-meta {
