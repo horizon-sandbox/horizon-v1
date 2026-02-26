@@ -69,6 +69,11 @@
           inline-size: 100%;
         }
       }
+
+      /* Links in footer should use default weight */
+      a {
+        font-weight: var(--typeweight--default);
+      }
     }
 
     /* Copyright information */
