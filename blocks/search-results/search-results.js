@@ -307,8 +307,7 @@ function createCustomChat(shell, config) {
     tabsEl.addEventListener('click', (e) => {
       const btn = e.target.closest('.search-results-tab');
       if (!btn) return;
-      if (btn.dataset.tab === 'pearson-ai') openChat();
-      else setOpen(false);
+      if (btn.dataset.tab !== 'pearson-ai') setOpen(false);
     });
   }
 
