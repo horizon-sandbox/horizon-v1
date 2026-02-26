@@ -95,6 +95,7 @@ function createCustomChat(shell, config) {
   let conversationId = `alg_cnv_${Date.now()}`;
   let messages = [];
   let isLoading = false;
+  let hasGreeted = false;
 
   const setOpen = (open) => {
     panel.classList.toggle('is-open', open);
@@ -116,7 +117,7 @@ function createCustomChat(shell, config) {
     if (role === 'assistant') {
       row.innerHTML = `
         <div class="search-results-chatbot-assistant-icon" aria-hidden="true">
-          <img src="/icons/favicon-light.svg" alt="" loading="lazy" />
+          <img src="/icons/bi_stars.svg" alt="" loading="lazy" />
         </div>
         <p>${sanitize(text)}</p>
       `;
@@ -185,7 +186,7 @@ function createCustomChat(shell, config) {
       pendingRow.classList.remove('is-pending');
       pendingRow.innerHTML = `
         <div class="search-results-chatbot-assistant-icon" aria-hidden="true">
-          <img src="/icons/favicon-light.svg" alt="" loading="lazy" />
+          <img src="/icons/bi_stars.svg" alt="" loading="lazy" />
         </div>
         <p>${sanitize(replyText)}</p>
       `;
@@ -202,7 +203,18 @@ function createCustomChat(shell, config) {
     }
   };
 
-  chatTrigger?.addEventListener('click', () => setOpen(!panel.classList.contains('is-open')));
+  const openChat = () => {
+    setOpen(true);
+    if (!hasGreeted) {
+      hasGreeted = true;
+      appendMessage('assistant', 'What can we help you find?');
+    }
+  };
+
+  chatTrigger?.addEventListener('click', () => {
+    if (panel.classList.contains('is-open')) setOpen(false);
+    else openChat();
+  });
   closeBtn?.addEventListener('click', () => setOpen(false));
   menuBtn?.addEventListener('click', () => setMenuOpen(menuList.hidden));
   newChatBtn?.addEventListener('click', startNewChat);
@@ -217,7 +229,8 @@ function createCustomChat(shell, config) {
     tabsEl.addEventListener('click', (e) => {
       const btn = e.target.closest('.search-results-tab');
       if (!btn) return;
-      setOpen(btn.dataset.tab === 'pearson-ai');
+      if (btn.dataset.tab === 'pearson-ai') openChat();
+      else setOpen(false);
     });
   }
 
@@ -502,7 +515,7 @@ function renderShell(block, config) {
       <div class="search-results-chatbot-input-wrap">
         <span class="search-results-chatbot-input-icon" aria-hidden="true">&#10023;</span>
         <input class="search-results-chatbot-input" type="text" name="chatPrompt" placeholder="${escapeHtml(config.chatPlaceholder)}" autocomplete="off" />
-        <button type="submit" class="search-results-chatbot-submit" aria-label="Send">&#8594;</button>
+        <button type="submit" class="search-results-chatbot-submit" aria-label="Send">&#8593;</button>
       </div>
     </form>
   `;
