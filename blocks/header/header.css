@@ -513,23 +513,124 @@ header nav .nav-tools .icon svg {
   height: 24px;
 }
 
-/* Sign Out — outlined */
-header nav .nav-tools .nav-tool-signout {
-  background: transparent;
-  border: 1px solid var(--color--text-tertiary, #ccc);
-  color: var(--color--text-tertiary);
+/* ── User avatar menu ─────────────────────────────────────────────── */
+
+header nav .nav-tools .nav-user-menu {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+header nav .nav-tools .nav-user-avatar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: none;
+  border: none;
+  padding: 0;
   cursor: pointer;
   font-family: inherit;
 }
 
-header nav .nav-tools .nav-tool-signout:hover {
-  filter: brightness(1.1);
+header nav .nav-tools .nav-user-avatar-circle {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: none;
+  background: var(--color--interactive-primary, #512eab);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  letter-spacing: 0;
 }
 
-/* User greeting */
-header nav .nav-tools .nav-user-greeting {
-  color: var(--color--text-brand-01);
-  font-size: var(--typesize-minor);
-  font-weight: var(--typeweight--semibold);
-  white-space: nowrap;
+header nav .nav-tools .nav-user-chevron {
+  display: inline-block;
+  width: 12px;
+  height: 7px;
+  background: url('/icons/icon.svg') no-repeat center / contain;
+  transition: transform 0.2s ease;
+}
+
+header nav .nav-tools .nav-user-avatar[aria-expanded="true"] .nav-user-chevron {
+  transform: rotate(180deg);
+}
+
+header nav .nav-tools .nav-user-dropdown {
+  display: none;
+  position: absolute;
+  top: calc(100% + 8px);
+  right: -8px;
+  width: 240px;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgb(0 0 0 / 10%), 0 1px 4px rgb(0 0 0 / 6%);
+  z-index: 100;
+  overflow: hidden;
+}
+
+header nav .nav-tools .nav-user-dropdown.is-open {
+  display: block;
+}
+
+header nav .nav-tools .nav-user-dropdown-header {
+  padding: 18px 24px 14px;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--color--text-primary, #020014);
+  border-bottom: 1px solid #eeedf3;
+}
+
+header nav .nav-tools .nav-user-dropdown-list {
+  list-style: none;
+  margin: 0;
+  padding: 6px 0;
+}
+
+header nav .nav-tools .nav-user-dropdown-list li {
+  margin: 0;
+}
+
+header nav .nav-tools .nav-user-dropdown-list a {
+  display: block;
+  padding: 9px 24px;
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--color--text-primary, #020014);
+  text-decoration: none;
+  transition: background 0.1s ease;
+}
+
+header nav .nav-tools .nav-user-dropdown-list a:hover {
+  background: #f6f5fa;
+}
+
+header nav .nav-tools .nav-user-dropdown-footer {
+  border-top: 1px solid #eeedf3;
+  padding: 0;
+}
+
+header nav .nav-tools .nav-user-signout {
+  display: block;
+  width: 100%;
+  padding: 12px 24px;
+  margin: 0;
+  background: none;
+  border: none;
+  border-radius: 0 0 16px 16px;
+  font-size: 14px;
+  font-weight: 400;
+  font-family: inherit;
+  color: var(--color--text-primary, #020014);
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.1s ease;
+}
+
+header nav .nav-tools .nav-user-signout:hover {
+  background: #f6f5fa;
 }
