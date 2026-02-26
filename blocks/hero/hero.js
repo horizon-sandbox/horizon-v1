@@ -1,10 +1,4 @@
-import { login, logout, getUser } from '../../scripts/ies-auth.js';
-
 export default function decorate(block) {
-  document.body.style.overflowY = '';
-  document.documentElement.style.overflowY = '';
-  document.body.classList.add('has-custom-hero');
-
   const section = block.closest('.section');
   if (section) {
     section.classList.add('hero-section');
@@ -16,35 +10,6 @@ export default function decorate(block) {
 
   const [title = '', subtitle = '', placeholder = 'What can I help you find?'] = values;
   const backgroundVideoSrc = 'https://content.da.live/horizon-sandbox/horizon-v1/content/dam/global/shared/brand/horizon/video/waves-turquoiseburn-1-light-16x9-l2r.mp4';
-  const heroDropdowns = [
-    {
-      label: 'Customer',
-      items: ['Institution', 'Enterprise', 'Consumer'],
-    },
-    {
-      label: 'For Education',
-      items: ['Learn', 'Progress', 'Career Readiness', 'Whole Learner', 'Educator Excellence'],
-    },
-    {
-      label: 'For Work',
-      items: ['Talent Solutions', 'Professional Assessments', 'Clinical'],
-    },
-  ];
-  const dropdownMarkup = heroDropdowns
-    .map((dropdown) => {
-      const menuItems = dropdown.items
-        .map((item) => `<li><a href="#">${item}</a></li>`)
-        .join('');
-      return `<div class="hero-nav-item has-dropdown">
-        <a class="hero-nav-trigger" href="#" aria-haspopup="true">
-          ${dropdown.label}
-        </a>
-        <ul class="hero-nav-menu">
-          ${menuItems}
-        </ul>
-      </div>`;
-    })
-    .join('');
 
   block.innerHTML = `
     <div class="hero-media" aria-hidden="true">
@@ -52,28 +17,6 @@ export default function decorate(block) {
         <source src="${backgroundVideoSrc}" type="video/mp4" />
       </video>
       <div class="hero-overlay"></div>
-    </div>
-    <div class="hero-topbar">
-      <div class="hero-brand-links">
-        <a class="hero-logo" href="/" aria-label="Pearson home">
-          <img src="/icons/pearson-logo-full-purple.svg" alt="Pearson" width="164" height="31" loading="eager" />
-        </a>
-        ${dropdownMarkup}
-      </div>
-      <div class="hero-tools-links">
-        <a class="hero-tool hero-tool-sales" href="/">Contact Sales</a>
-        ${(() => {
-    const user = getUser();
-    if (user) {
-      return `
-            <span class="hero-tool hero-user-greeting">Hi, ${user.firstName || user.email}</span>
-            <button class="hero-tool hero-tool-signout" type="button">Sign Out</button>`;
-    }
-    return '<button class="hero-tool hero-tool-signin" type="button">Sign In</button>';
-  })()}
-        <a class="hero-tool hero-tool-icon hero-tool-support" href="/" aria-label="Get Support"></a>
-        <a class="hero-tool hero-tool-icon hero-tool-cart" href="/" aria-label="Cart"></a>
-      </div>
     </div>
     <div class="hero-shell">
       <div class="hero-content">
@@ -90,22 +33,6 @@ export default function decorate(block) {
       </div>
     </div>
   `;
-
-  // Auth button handlers
-  const signinBtn = block.querySelector('.hero-tool-signin');
-  if (signinBtn) {
-    signinBtn.addEventListener('click', (e) => {
-      e.preventDefault();
-      login();
-    });
-  }
-  const signoutBtn = block.querySelector('.hero-tool-signout');
-  if (signoutBtn) {
-    signoutBtn.addEventListener('click', (e) => {
-      e.preventDefault();
-      logout();
-    });
-  }
 
   // Lazy-load Algolia after LCP — does not block page render
   const staticPlaceholder = block.querySelector('.hero-search-placeholder');
@@ -179,14 +106,25 @@ export default function decorate(block) {
 
       // Post-process assistant messages: fetch real product data from Algolia
       // and render rich tiles in place of inline links.
-      const PRODUCT_INDEX = 'live-en-us-learner-content-index';
+      const PRODUCT_INDEX = 'live-learner-program-index';
+      const PEARSON_HOST = 'https://www.pearson.com/store/en-us';
+
+      // Extract a readable slug from a Pearson product URL to use as an Algolia query.
+      // e.g. .../p/elements-of-ecology/P200.../978... → "elements of ecology"
+      const queryFromHref = (href, text) => {
+        const match = href.match(/\/p\/([^/]+)\//i);
+        return match ? match[1].replace(/-/g, ' ') : text;
+      };
 
       const buildProductTile = (href, fallbackText, hit) => {
-        const hitTitle = hit?.name || hit?.title || hit?.productName || fallbackText;
-        const image = hit?.image || hit?.cover_image || hit?.thumbnail || hit?.imageUrl || '';
-        const author = hit?.author || hit?.authors || '';
-        const price = hit?.price != null ? `$${Number(hit.price).toFixed(2)}` : '';
-        const url = hit?.url || hit?.productPageUrl || hit?.pdpUrl || href;
+        const hitTitle = hit?.name || fallbackText;
+        const raw = hit?.smallThumbnail || '';
+        const image = raw && raw.startsWith('/') ? `${PEARSON_HOST}${raw}` : raw;
+        const author = hit?.authorsAggregated || '';
+        const sym = hit?.currencySymbol || '$';
+        const price = hit?.lowestProgramPriceValue != null
+          ? `from ${sym}${Number(hit.lowestProgramPriceValue).toFixed(2)}/mo` : '';
+        const url = hit?.url || href;
         const tile = document.createElement('a');
         tile.className = 'ais-chat-product-tile';
         tile.href = url;
@@ -203,22 +141,28 @@ export default function decorate(block) {
       };
 
       const renderLinksAsTiles = async (messageEl) => {
+        if (messageEl.dataset.tilesRendered) return;
         const anchors = [...messageEl.querySelectorAll('a[href]')];
         if (!anchors.length) return;
+        messageEl.dataset.tilesRendered = '1';
 
         // Insert grid with loading placeholders immediately
         const grid = document.createElement('div');
         grid.className = 'ais-chat-product-tiles';
-        const linkData = anchors.map((anchor) => ({
-          href: anchor.href,
-          text: anchor.textContent.trim(),
-        }));
-        linkData.forEach(({ text }) => {
+        const linkData = anchors.map((anchor) => {
+          const { href } = anchor;
+          const rawText = anchor.textContent.trim();
+          const query = queryFromHref(href, rawText);
+          return { href, text: rawText, query };
+        });
+        linkData.forEach(({ query }) => {
           const loadingTile = document.createElement('div');
           loadingTile.className = 'ais-chat-product-tile ais-chat-product-tile--loading';
-          const body = `<div class="ais-chat-product-tile-body">
-            <span class="ais-chat-product-tile-title">${text}</span></div>`;
-          loadingTile.innerHTML = body;
+          loadingTile.innerHTML = `
+            <div class="ais-chat-product-tile-image"></div>
+            <div class="ais-chat-product-tile-body">
+              <span class="ais-chat-product-tile-title">${query}</span>
+            </div>`;
           grid.append(loadingTile);
         });
         anchors.forEach((anchor) => anchor.remove());
@@ -227,9 +171,9 @@ export default function decorate(block) {
         // Fetch real hits from Algolia in one multi-query call
         try {
           const { results } = await searchClient.search({
-            requests: linkData.map(({ text }) => ({
+            requests: linkData.map(({ query }) => ({
               indexName: PRODUCT_INDEX,
-              query: text,
+              query,
               hitsPerPage: 1,
             })),
           });
@@ -244,16 +188,34 @@ export default function decorate(block) {
         }
       };
 
-      // Watch for new fully-streamed assistant messages
+      // Watch for new/updated assistant messages and convert inline links to tiles.
+      // Uses a debounce map so each message element is only processed once
+      // streaming has settled (links appear mid-stream as content is added).
+      const pendingMessages = new Map();
       const chatObserver = new MutationObserver((mutations) => {
+        const seen = new Set();
         mutations.forEach((mutation) => {
+          // Collect candidate message containers from added nodes and their ancestors
+          const candidates = [];
           mutation.addedNodes.forEach((node) => {
             if (node.nodeType !== 1) return;
-            // Target assistant message content nodes
-            const msgs = node.classList?.contains('ais-ChatMessage-message')
-              ? [node]
-              : [...node.querySelectorAll('.ais-ChatMessage-message')];
-            msgs.forEach(renderLinksAsTiles);
+            if (node.classList?.contains('ais-ChatMessage-message')) {
+              candidates.push(node);
+            } else {
+              const parent = node.closest?.('.ais-ChatMessage-message');
+              if (parent) candidates.push(parent);
+              candidates.push(...node.querySelectorAll('.ais-ChatMessage-message'));
+            }
+          });
+          candidates.forEach((el) => {
+            if (seen.has(el)) return;
+            seen.add(el);
+            // Debounce: wait 300 ms after last mutation before processing
+            if (pendingMessages.has(el)) clearTimeout(pendingMessages.get(el));
+            pendingMessages.set(el, setTimeout(() => {
+              pendingMessages.delete(el);
+              renderLinksAsTiles(el);
+            }, 300));
           });
         });
       });
