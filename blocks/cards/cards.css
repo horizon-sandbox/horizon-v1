@@ -143,7 +143,16 @@ main > .section.cards-container > div {
 
 .cards .cards-card-body > p:last-child a:any-link::after,
 .cards .cards-card-body .button::after {
-  content: '>';
+  content: "";
+  flex: none;
+  display: inline;
+  mask-image: url("/icons/chevron-right.svg");
+  mask-size: 100%;
+  mask-repeat: no-repeat;
+  mask-position: center;
+  background: currentColor;
+  padding: 9px;
+  margin-inline-start:.4em;
 }
 
 .cards .cards-card-body > p:last-child a:any-link:hover,
