@@ -23,12 +23,12 @@ export default function decorate(block) {
         <h1>${title}</h1>
         <p>${subtitle}</p>
         <div class="hero-search">
-          <div class="hero-search-placeholder">
-            <input type="text" placeholder="${placeholder}" aria-label="Search" />
-            <button type="button" aria-label="Submit search">
+          <form class="hero-search-placeholder" action="/search" method="get">
+            <input type="text" name="q" placeholder="${placeholder}" aria-label="Search" autocomplete="off" />
+            <button type="submit" aria-label="Submit search">
               <img src="/icons/agentic-search.svg" alt="" width="18" height="18" loading="lazy" />
             </button>
-          </div>
+          </form>
         </div>
       </div>
     </div>
@@ -51,8 +51,17 @@ export default function decorate(block) {
     if (widgetBtn && widgetBtn.getAttribute('aria-expanded') !== 'true') widgetBtn.click();
   }
 
+  // Navigate to /search on submit (Enter or button click)
+  const searchForm = staticPlaceholder;
+  if (searchForm) {
+    searchForm.addEventListener('submit', (event) => {
+      event.preventDefault();
+      const query = placeholderInput?.value.trim() || '';
+      window.location.href = query ? `/search?q=${encodeURIComponent(query)}` : '/search';
+    });
+  }
+
   if (placeholderInput) placeholderInput.addEventListener('focus', triggerAlgoliaOpen);
-  if (placeholderBtn) placeholderBtn.addEventListener('click', triggerAlgoliaOpen);
 
   async function initAlgoliaChat() {
     try {
