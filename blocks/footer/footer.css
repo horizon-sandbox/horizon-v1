@@ -14,25 +14,26 @@
     padding-block: var(--space--x6);
     margin-inline: var(--grid-container-margin);
 
-    @media (max-width: 375px) {
+    @media (width <= 375px) {
       --grid-gutters: var(--grid-margin-xs);
     }
 
     /* Should become single (1) column */
-    @media (max-width: 767px) {
+    @media (width <= 767px) {
       flex-direction: column;
     }
 
-    @media (min-width: 376px) and (max-width: 768px) {
+    @media (width >= 376px) and (width <= 768px) {
       --grid-gutters: var(--grid-margin-sm);
     }
 
-    @media (min-width: 769px) and (max-width: 1439px) {
+    @media (width >= 769px) and (width <= 1439px) {
       --grid-gutters: var(--grid-margin-md);
     }
 
-    @media (min-width: 1440px) {
+    @media (width >= 1440px) {
       --grid-gutters: var(--grid-margin-lg);
+
       max-inline-size: var(--grid-container-width);
     }
 
@@ -54,14 +55,14 @@
       }
 
       /* Should become (2) columns */
-      @media (max-width: 1280px) {
+      @media (width <= 1280px) {
         display: grid;
         grid-template-columns: 1fr 1fr;
         gap: var(--space--x2);
       }
 
       /* Should become single (1) column */
-      @media (max-width: 767px) {
+      @media (width <= 767px) {
         display: flex;
         flex-flow: row wrap;
 
@@ -81,11 +82,11 @@
       padding: unset;
       margin: unset;
 
-      @media (max-width: 767px) {
+      @media (width <= 767px) {
         margin-block-start: var(--space--x12);
       }
 
-      @media (min-width: 768px) {
+      @media (width >= 768px) {
         margin-inline-start: auto;
       }
     }
