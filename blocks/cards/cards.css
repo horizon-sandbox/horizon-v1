@@ -151,7 +151,7 @@ main > .section.cards-container > div {
   mask-size: 100%;
   mask-repeat: no-repeat;
   mask-position: center;
-  background: currentColor;
+  background: currentcolor;
   padding: 9px;
   margin-inline-start:.4em;
 }
