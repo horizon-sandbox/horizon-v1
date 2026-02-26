@@ -77,6 +77,35 @@ function sanitize(value) {
     .replace(/'/g, '&#039;');
 }
 
+function extractProducts(text) {
+  const re = /https?:\/\/www\.pearson\.com\/[^\s<>"]+\/(P\d{6,})/gi;
+  const products = [];
+  [...text.matchAll(re)].forEach((match) => {
+    const [url, productId] = match;
+    const parts = url.split('/');
+    const slug = parts[parts.length - 2] || '';
+    const titleFromSlug = slug
+      .split('-')
+      .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+      .join(' ');
+    products.push({ url, productId, titleFromSlug });
+  });
+  return products;
+}
+
+async function lookupAlgoliaProduct(productId, appId, apiKey, indexName) {
+  try {
+    const resp = await fetch(
+      `https://${appId}-dsn.algolia.net/1/indexes/${encodeURIComponent(indexName)}/${encodeURIComponent(productId)}`,
+      { headers: { 'X-Algolia-Application-Id': appId, 'X-Algolia-API-Key': apiKey } },
+    );
+    if (!resp.ok) return null;
+    return await resp.json();
+  } catch (e) {
+    return null;
+  }
+}
+
 function createCustomChat(shell, config) {
   const { chatPanel: panel, chatTrigger } = shell;
   if (!panel) return;
@@ -114,15 +143,17 @@ function createCustomChat(shell, config) {
   const appendMessage = (role, text, isPending = false) => {
     const row = document.createElement('div');
     row.className = `search-results-chatbot-message is-${role}${isPending ? ' is-pending' : ''}`;
+    const time = new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
     if (role === 'assistant') {
       row.innerHTML = `
         <div class="search-results-chatbot-assistant-icon" aria-hidden="true">
           <img src="/icons/bi_stars.svg" alt="" loading="lazy" />
         </div>
         <p>${sanitize(text)}</p>
+        <span class="search-results-chatbot-message-time">Sent ${time}</span>
       `;
     } else {
-      row.innerHTML = `<p>${sanitize(text)}</p>`;
+      row.innerHTML = `<p>${sanitize(text)}</p><span class="search-results-chatbot-message-time">Sent ${time}</span>`;
     }
     messagesEl.append(row);
     messagesEl.scrollTop = messagesEl.scrollHeight;
@@ -184,12 +215,43 @@ function createCustomChat(shell, config) {
       const { replyText, replyId } = await parseAiSdk5Stream(response);
       messages.push({ id: replyId, role: 'assistant', parts: [{ type: 'text', text: replyText }] });
       pendingRow.classList.remove('is-pending');
-      pendingRow.innerHTML = `
-        <div class="search-results-chatbot-assistant-icon" aria-hidden="true">
-          <img src="/icons/bi_stars.svg" alt="" loading="lazy" />
-        </div>
-        <p>${sanitize(replyText)}</p>
-      `;
+      const products = extractProducts(replyText);
+      const sentTime = new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+      if (products.length > 0) {
+        pendingRow.classList.add('has-cards');
+        const cardHtmls = await Promise.all(
+          products.map(({ productId, url, titleFromSlug }) => lookupAlgoliaProduct(
+            productId,
+            config.appId,
+            config.searchApiKey,
+            config.shopIndex,
+          // eslint-disable-next-line no-use-before-define
+          ).then((hit) => buildProductCardHtml(url, titleFromSlug, hit))),
+        );
+        let leadText = replyText;
+        products.forEach(({ url }) => {
+          leadText = leadText
+            .replace(/[-\u2013\u2014]+\s*product page:\s*/gi, '')
+            .replace(url, '');
+        });
+        leadText = leadText.trim().replace(/\s{2,}/g, ' ').replace(/^[^\w]+|[^\w?!.]+$/g, '').trim();
+        pendingRow.innerHTML = `
+          <div class="search-results-chatbot-assistant-icon" aria-hidden="true">
+            <img src="/icons/bi_stars.svg" alt="" loading="lazy" />
+          </div>
+          ${leadText ? `<p>${sanitize(leadText)}</p>` : ''}
+          <ul class="search-results-chatbot-cards">${cardHtmls.join('')}</ul>
+          <span class="search-results-chatbot-message-time">Sent ${sentTime}</span>
+        `;
+      } else {
+        pendingRow.innerHTML = `
+          <div class="search-results-chatbot-assistant-icon" aria-hidden="true">
+            <img src="/icons/bi_stars.svg" alt="" loading="lazy" />
+          </div>
+          <p>${sanitize(replyText)}</p>
+          <span class="search-results-chatbot-message-time">Sent ${sentTime}</span>
+        `;
+      }
     } catch (err) {
       pendingRow.remove();
       appendMessage('assistant', 'Sorry, something went wrong. Please try again.');
@@ -222,6 +284,21 @@ function createCustomChat(shell, config) {
   document.addEventListener('click', (e) => {
     const wrap = panel.querySelector('.search-results-chatbot-menu-wrap');
     if (wrap && !wrap.contains(e.target)) setMenuOpen(false);
+  });
+
+  messagesEl?.addEventListener('click', (e) => {
+    const btn = e.target.closest('.search-results-chatbot-card-format-btn');
+    if (!btn) return;
+    const card = btn.closest('.search-results-chatbot-card');
+    if (!card) return;
+    card.querySelectorAll('.search-results-chatbot-card-format-btn').forEach((b) => b.classList.remove('is-active'));
+    btn.classList.add('is-active');
+    const priceEl = card.querySelector('.search-results-chatbot-card-price');
+    if (priceEl && btn.dataset.price) {
+      priceEl.textContent = `from ${btn.dataset.currency || '$'}${btn.dataset.price}/mo`;
+      priceEl.classList.remove('is-updating');
+      setTimeout(() => priceEl.classList.add('is-updating'), 0);
+    }
   });
 
   const tabsEl = panel.closest('.search-results-main-content')?.querySelector('.search-results-tabs');
@@ -391,6 +468,39 @@ function cardHref(item) {
   return getFirstString(item, ['url_en', 'defaultProgramUrl', 'url']) || '#';
 }
 
+function buildProductCardHtml(url, titleFromSlug, hit) {
+  const title = (hit && cardTitle(hit)) || titleFromSlug;
+  const edition = hit ? getFirstString(hit, ['programEdition', 'edition', 'editionName']) : '';
+  const price = hit ? (hit.lowestDiscountedProgramPriceValue || hit.lowestProgramPriceValue || '') : '';
+  const currency = (hit && hit.currencySymbol) || '$';
+  const formats = hit ? (hit.subFormats || hit.mainFormats || []) : [];
+  const rawImage = hit ? getFirstString(hit, ['smallThumbnail', 'coverImageUrl', 'coverImage', 'thumbnailUrl', 'thumbnail', 'image']) : '';
+  const coverImage = rawImage && rawImage.startsWith('/') ? `https://www.pearson.com/store/en-us${rawImage}` : rawImage;
+  const imageHtml = coverImage
+    ? `<img class="search-results-chatbot-card-image" src="${escapeHtml(coverImage)}" alt="${escapeHtml(title)}" loading="lazy" />`
+    : '<div class="search-results-chatbot-card-image"></div>';
+  const formatsHtml = formats.length
+    ? `<ul class="search-results-chatbot-card-formats">${formats.map((f, i) => `<li><button type="button" class="search-results-chatbot-card-format-btn${i === 0 ? ' is-active' : ''}" data-price="${escapeHtml(String(price))}" data-currency="${escapeHtml(String(currency))}">${escapeHtml(f)}</button></li>`).join('')}</ul>`
+    : '';
+  const priceHtml = price
+    ? `<p class="search-results-chatbot-card-price">from ${escapeHtml(String(currency))}${escapeHtml(String(price))}/mo</p>`
+    : '';
+  return `
+    <li class="search-results-chatbot-card">
+      ${imageHtml}
+      <div class="search-results-chatbot-card-body">
+        <h4 class="search-results-chatbot-card-title"><a href="${escapeHtml(url)}">${escapeHtml(title)}</a></h4>
+        ${edition ? `<p class="search-results-chatbot-card-edition">${escapeHtml(edition)}</p>` : ''}
+        ${formatsHtml}
+        ${priceHtml}
+        <div class="search-results-chatbot-card-cta-wrap">
+          <a href="${escapeHtml(url)}" class="search-results-chatbot-card-cta" target="_blank" rel="noopener noreferrer">Add to cart</a>
+        </div>
+      </div>
+    </li>
+  `;
+}
+
 function cardMeta(item, sourceLabel, sourceKey = '') {
   const category = getFirstArrayValue(item, ['topics', 'contentType', 'learningStage'])
     || item.categoriesHierarchical_en?.lvl0?.[0]
@@ -507,13 +617,13 @@ function renderShell(block, config) {
             <button type="button" class="search-results-chatbot-menu-item" role="menuitem">Start new chat</button>
           </div>
         </div>
-        <button type="button" class="search-results-chatbot-close" aria-label="Close chat">&minus;</button>
+        <button type="button" class="search-results-chatbot-close" aria-label="Close chat"><img src="/icons/close-icon.svg" alt="" aria-hidden="true" /></button>
       </div>
     </div>
     <div class="search-results-chatbot-messages" aria-live="polite"></div>
     <form class="search-results-chatbot-form">
       <div class="search-results-chatbot-input-wrap">
-        <span class="search-results-chatbot-input-icon" aria-hidden="true">&#10023;</span>
+        <img class="search-results-chatbot-input-icon" src="/icons/chatbot-vector.svg" alt="" aria-hidden="true" />
         <input class="search-results-chatbot-input" type="text" name="chatPrompt" placeholder="${escapeHtml(config.chatPlaceholder)}" autocomplete="off" />
         <button type="submit" class="search-results-chatbot-submit" aria-label="Send">&#8593;</button>
       </div>
