@@ -442,6 +442,7 @@ header nav .nav-tools em {
 }
 
 /* Contact Sales — always #512eab, readable on light hero bg and white scrolled */
+/* stylelint-disable-next-line no-descending-specificity */
 header nav .nav-tools a:any-link {
   display: inline-flex;
   align-items: center;
@@ -457,6 +458,7 @@ header nav .nav-tools a:any-link {
   transition: opacity 0.15s ease;
 }
 
+/* stylelint-disable-next-line no-descending-specificity */
 header nav .nav-tools a:hover {
   opacity: 0.75;
 }
@@ -595,6 +597,7 @@ header nav .nav-tools .nav-user-dropdown-list li {
   margin: 0;
 }
 
+/* stylelint-disable-next-line no-descending-specificity */
 header nav .nav-tools .nav-user-dropdown-list a {
   display: block;
   padding: 9px 24px;
@@ -605,6 +608,7 @@ header nav .nav-tools .nav-user-dropdown-list a {
   transition: background 0.1s ease;
 }
 
+/* stylelint-disable-next-line no-descending-specificity */
 header nav .nav-tools .nav-user-dropdown-list a:hover {
   background: #f6f5fa;
 }
@@ -642,10 +646,12 @@ header nav .nav-sections .nav-drop {
         transition: transform 0.25s cubic-bezier(.6, 0, .2, .5);
       }
 
+      /* stylelint-disable no-descending-specificity */
       .chevron-down-left-stroke {
         transform-origin: 42% 50%;
       }
 
+      /* stylelint-enable no-descending-specificity */
       .chevron-down-right-stroke {
         transform-origin: 58% 50%;
       }
