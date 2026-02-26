@@ -7,7 +7,6 @@
   }
 
   .default-content-wrapper {
-    outline: 1px dashed orange;
     display: flex;
     gap: var(--space--x8);
     max-inline-size: 100%;
