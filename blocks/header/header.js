@@ -257,14 +257,53 @@ export default async function decorate(block) {
       const user = getUser();
       const liEl = signInAnchor.closest('li') ?? signInAnchor.parentElement;
       if (user) {
-        const greeting = document.createElement('span');
-        greeting.className = 'nav-user-greeting';
-        greeting.textContent = `Hi, ${user.firstName || user.email}`;
-        const signoutEl = document.createElement('button');
-        signoutEl.className = 'nav-tool-signout';
-        signoutEl.type = 'button';
-        signoutEl.textContent = 'Sign Out';
-        liEl.replaceWith(greeting, signoutEl);
+        const firstInitial = (user.firstName || '')[0] || '';
+        const lastInitial = (user.lastName || '')[0] || '';
+        const initials = (firstInitial + lastInitial).toUpperCase() || '?';
+        const displayName = user.firstName || user.email || 'User';
+
+        const userMenu = document.createElement('div');
+        userMenu.className = 'nav-user-menu';
+        userMenu.innerHTML = `
+          <button class="nav-user-avatar" type="button" aria-haspopup="true" aria-expanded="false">
+            <span class="nav-user-avatar-circle">${initials}</span>
+            <span class="nav-user-chevron"></span>
+          </button>
+          <div class="nav-user-dropdown">
+            <div class="nav-user-dropdown-header">Hi, ${displayName}</div>
+            <ul class="nav-user-dropdown-list">
+              <li><a href="#">Account details</a></li>
+              <li><a href="#">Order history</a></li>
+              <li><a href="#">Address book</a></li>
+              <li><a href="#">Wallet</a></li>
+              <li><a href="#">Preferences</a></li>
+              <li><a href="#">Change password</a></li>
+              <li><a href="#">My learning</a></li>
+              <li><a href="#">Track order</a></li>
+            </ul>
+            <div class="nav-user-dropdown-footer">
+              <button class="nav-user-signout" type="button">Sign out</button>
+            </div>
+          </div>`;
+        liEl.replaceWith(userMenu);
+
+        const avatarBtn = userMenu.querySelector('.nav-user-avatar');
+        const dropdown = userMenu.querySelector('.nav-user-dropdown');
+        avatarBtn.addEventListener('click', () => {
+          const open = avatarBtn.getAttribute('aria-expanded') === 'true';
+          avatarBtn.setAttribute('aria-expanded', open ? 'false' : 'true');
+          dropdown.classList.toggle('is-open', !open);
+        });
+        document.addEventListener('click', (e) => {
+          if (!userMenu.contains(e.target)) {
+            avatarBtn.setAttribute('aria-expanded', 'false');
+            dropdown.classList.remove('is-open');
+          }
+        });
+        userMenu.querySelector('.nav-user-signout').addEventListener('click', (e) => {
+          e.preventDefault();
+          logout();
+        });
       } else {
         const signinEl = document.createElement('button');
         signinEl.className = 'nav-cta nav-tool-signin';
@@ -280,13 +319,6 @@ export default async function decorate(block) {
       signinBtn.addEventListener('click', (e) => {
         e.preventDefault();
         login();
-      });
-    }
-    const signoutBtn = navTools.querySelector('.nav-tool-signout');
-    if (signoutBtn) {
-      signoutBtn.addEventListener('click', (e) => {
-        e.preventDefault();
-        logout();
       });
     }
 
