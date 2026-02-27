@@ -58,7 +58,7 @@ export default function decorate(block) {
   // Note: BigCommerce cart is shared across sessions until an order is placed.
   const BACKEND_URL = 'https://d1jtsgh86mgj9q.cloudfront.net';
   const CART_KEY = 'pearson_agent_cart';
-  const DEFAULT_CART_ID = '59dab611-ea18-4349-ab92-c3449d6ec3be';
+  const DEFAULT_CART_ID = '7a868477-fa87-44a3-9141-e64fa5ed24a0';
   const cartState = (() => {
     try {
       const r = localStorage.getItem(CART_KEY);
