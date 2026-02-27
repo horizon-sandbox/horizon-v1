@@ -384,8 +384,37 @@ export default async function decorate(block) {
       } catch { /* fallback URL already loaded */ }
     });
 
+    // On page load, fetch a fresh cart from the backend to get the live count.
+    // Falls back to the cached count if the request fails or there is no cartId.
+    const DEFAULT_CART_ID = '59dab611-ea18-4349-ab92-c3449d6ec3be';
+    const refreshCartCount = async () => {
+      try {
+        const raw = localStorage.getItem('pearson_agent_cart');
+        const state = raw ? JSON.parse(raw) : {};
+        if (!state.cartId) state.cartId = DEFAULT_CART_ID;
+        const base = 'http://algolia-agent-alb-485198481.us-east-1.elb.amazonaws.com';
+        const id = encodeURIComponent(state.cartId);
+        // Fetch cart count and checkout URL in parallel
+        const [cartRes, checkoutRes] = await Promise.all([
+          fetch(`${base}/api/tools/get-cart?cartId=${id}`),
+          fetch(`${base}/api/tools/get-checkout?cartId=${id}`),
+        ]);
+        if (cartRes.ok) {
+          const cartData = await cartRes.json().catch(() => null);
+          if (cartData?.cart) state.cart = cartData.cart;
+        }
+        if (checkoutRes.ok) {
+          const checkoutData = await checkoutRes.json().catch(() => null);
+          if (checkoutData?.checkoutUrl) state.checkoutUrl = checkoutData.checkoutUrl;
+        }
+        localStorage.setItem('pearson_agent_cart', JSON.stringify(state));
+        syncCartLink();
+      } catch { /* silent — badge already shows cached count */ }
+    };
+
     syncCartLink();
-    window.addEventListener('pearson:cart-updated', syncCartLink);
+    refreshCartCount();
+    window.addEventListener('pearson:cart-updated', refreshCartCount);
     window.addEventListener('storage', (e) => { if (e.key === 'pearson_agent_cart') syncCartLink(); });
   }
 
