@@ -24,8 +24,8 @@ header .nav-wrapper:has(.nav-drop[aria-expanded='true'])::before {
   box-shadow: 0 4px 12px rgb(0 0 0 / 8%);
   z-index: -1;
   top: var(--space--x4);
-  left: var(--space--x21);
-  right: var(--space--x21);
+  max-width: 1312px;
+  margin: 0 auto;
   border-radius: var(--corner--x2, 8px);
 }
 
@@ -320,8 +320,8 @@ header nav .nav-sections ul > li > ul > li {
     align-items: flex-start;
     gap: 48px;
     position: fixed;
-    left: var(--space--x21);
-    right: var(--space--x21);
+    top: var(--space--x4);
+    max-width: 1312px;
     top: 87px;
     width: auto;
     padding: var(--space--x9);
