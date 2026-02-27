@@ -13,7 +13,7 @@ export default function decorate(block) {
 
   block.innerHTML = `
     <div class="hero-media" aria-hidden="true">
-      <video autoplay muted loop playsinline preload="metadata">
+      <video autoplay muted loop playsinline preload="metadata" fetchpriority="high">
         <source src="${backgroundVideoSrc}" type="video/mp4" />
       </video>
       <div class="hero-overlay"></div>
