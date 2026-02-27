@@ -313,7 +313,9 @@ export default async function decorate(block) {
         signinEl.className = 'nav-cta nav-tool-signin';
         signinEl.type = 'button';
         signinEl.textContent = 'Sign In';
-        liEl.replaceWith(signinEl);
+        const signinItem = document.createElement('li');
+        signinItem.append(signinEl);
+        liEl.replaceWith(signinItem);
       }
     }
 
