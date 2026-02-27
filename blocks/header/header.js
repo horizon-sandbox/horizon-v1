@@ -372,7 +372,7 @@ export default async function decorate(block) {
       if (!cartId) return;
       try {
         const res = await fetch(
-          `http://algolia-agent-alb-485198481.us-east-1.elb.amazonaws.com/api/tools/get-checkout?cartId=${encodeURIComponent(cartId)}`,
+          `https://d1jtsgh86mgj9q.cloudfront.net/api/tools/get-checkout?cartId=${encodeURIComponent(cartId)}`,
         );
         const data = await res.json().catch(() => ({}));
         if (data?.checkoutUrl) {
@@ -392,7 +392,7 @@ export default async function decorate(block) {
         const raw = localStorage.getItem('pearson_agent_cart');
         const state = raw ? JSON.parse(raw) : {};
         if (!state.cartId) state.cartId = DEFAULT_CART_ID;
-        const base = 'http://algolia-agent-alb-485198481.us-east-1.elb.amazonaws.com';
+        const base = 'https://d1jtsgh86mgj9q.cloudfront.net';
         const id = encodeURIComponent(state.cartId);
         // Fetch cart count and checkout URL in parallel
         const [cartRes, checkoutRes] = await Promise.all([
