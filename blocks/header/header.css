@@ -501,6 +501,28 @@ header nav .nav-tools a.nav-tool-icon:hover {
   opacity: 0.7;
 }
 
+/* Cart badge — item count from BigCommerce */
+header nav .nav-tools a.nav-tool-cart {
+  position: relative;
+}
+
+header nav .nav-tools a.nav-tool-cart .nav-tool-cart-badge {
+  position: absolute;
+  top: -5px;
+  right: -7px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 3px;
+  background: var(--color--icon-accent-02-primary, #ffce00);
+  color: #000;
+  border-radius: 8px;
+  font-size: 0.625rem;
+  font-weight: 700;
+  line-height: 16px;
+  text-align: center;
+  pointer-events: none;
+}
+
 header nav .nav-tools .icon {
   width: 24px;
   height: 24px;
