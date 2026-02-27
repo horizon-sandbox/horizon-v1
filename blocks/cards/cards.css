@@ -142,24 +142,41 @@ main > .section.cards-container > div {
   text-decoration: none;
 }
 
-.cards .cards-card-body > p:last-child a:any-link::after,
-.cards .cards-card-body .button::after {
-  content: "";
-  flex: none;
-  display: inline;
-  mask-image: url("/icons/chevron-right.svg");
-  mask-size: 100%;
-  mask-repeat: no-repeat;
-  mask-position: center;
-  background: currentcolor;
-  padding: 9px;
-  margin-inline-start:.4em;
-}
-
 .cards .cards-card-body > p:last-child a:any-link:hover,
 .cards .cards-card-body .button:hover {
   color: var(--color--text-link-hover);
   text-decoration: underline;
+}
+
+/* SVG chevron next with animation */
+.cards .cards-card-body > p:last-child a, 
+.cards .cards-card-body .button {  
+  .chevarrow-next {
+    flex: none;
+    margin-inline-start: 9px;
+
+    .bar {
+      transition: opacity .5s cubic-bezier(.25, 1, .5, 1);
+      opacity: 0;
+    }
+
+    .chevron {
+      transition: transform .3s cubic-bezier(.25, 1, .5, 1);
+    }
+  }
+
+  &:hover,
+  &:focus,
+  &:focus-visible {
+    .chevarrow-next {
+      .bar {
+        opacity: 1;
+      }
+      .chevron {
+        transform: translateX(12%);
+      }
+    }
+  }
 }
 
 /* ─── Tablet: 2 cards visible ─── */
