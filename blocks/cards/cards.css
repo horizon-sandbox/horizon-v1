@@ -93,6 +93,10 @@ main > .section.cards-container > div {
   flex-direction: column;
   gap: var(--space--x2);
   flex: 1 1 auto;
+
+  *:is(h2) {
+    font-size: var(--heading-font-size-l);
+  }
 }
 
 .cards .cards-card-body > p:first-child {
