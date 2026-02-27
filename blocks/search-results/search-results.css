@@ -11,7 +11,7 @@ main > .section.search-results-section > div {
   position: relative;
   box-sizing: border-box;
   background: var(--pearson-color-ui-background-brand-04, #edecf6);
-  padding: var(--nav-height) 0 0;
+  padding: var(--space--x8);
 }
 
 .search-results .search-results-media {
@@ -38,7 +38,9 @@ main > .section.search-results-section > div {
   display: flex;
   flex-direction: column;
   gap: 0;
-  padding: 48px var(--space--x31, 124px) 24px;
+  padding: var(--space--x12) 0 var(--space--x6);
+  max-width: 1048px;
+  margin: 0 auto;
 }
 
 .search-results .search-results-main-content {
@@ -997,9 +999,6 @@ main > .section.search-results-section > div {
 }
 
 @media (width >= 900px) {
-  .search-results {
-    padding: 32px;
-  }
 
   .search-results .search-results-tabs {
     padding-top: 20px;
