@@ -320,6 +320,7 @@ header nav .nav-sections ul > li > ul > li {
     align-items: flex-start;
     gap: 48px;
     position: fixed;
+    margin: 0 auto;
     left: var(--space--x21);
     right: var(--space--x21);
     top: var(--space--x4);
