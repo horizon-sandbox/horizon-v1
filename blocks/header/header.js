@@ -330,10 +330,62 @@ export default async function decorate(block) {
     const cartLink = document.createElement('a');
     cartLink.href = '/cart';
     cartLink.setAttribute('aria-label', 'Cart');
-    cartLink.className = 'nav-tool-icon';
+    cartLink.className = 'nav-tool-icon nav-tool-cart';
     cartLink.innerHTML = '<span class="icon icon-cart"></span>';
     if (toolsWrapper) toolsWrapper.append(cartLink);
     await decorateIcons(nav);
+
+    // Sync cart link to BigCommerce cart stored in localStorage
+    // Derive count from sum of item quantities (not itemCount which is line-item count)
+    const syncCartLink = () => {
+      try {
+        const raw = localStorage.getItem('pearson_agent_cart');
+        const state = raw ? JSON.parse(raw) : null;
+        const count = (state?.cart?.items || []).reduce((s, i) => s + (i.quantity || 1), 0);
+        cartLink.href = state?.checkoutUrl || '/cart';
+        let badge = cartLink.querySelector('.nav-tool-cart-badge');
+        if (count > 0) {
+          if (!badge) {
+            badge = document.createElement('span');
+            badge.className = 'nav-tool-cart-badge';
+            cartLink.append(badge);
+          }
+          badge.textContent = count > 99 ? '99+' : String(count);
+        } else if (badge) {
+          badge.remove();
+        }
+      } catch { /* ignore */ }
+    };
+
+    // On click: always fetch a fresh checkout URL before opening so stale
+    // links from previous sessions or cross-widget adds don't send the user
+    // to an expired URL.
+    cartLink.addEventListener('click', async (e) => {
+      e.preventDefault();
+      try {
+        const raw = localStorage.getItem('pearson_agent_cart');
+        const state = raw ? JSON.parse(raw) : null;
+        const cartId = state?.cartId;
+        if (!cartId) { window.open('/cart', '_blank', 'noopener'); return; }
+        const res = await fetch(
+          `http://algolia-agent-alb-485198481.us-east-1.elb.amazonaws.com/api/tools/get-checkout?cartId=${encodeURIComponent(cartId)}`,
+        );
+        const data = await res.json().catch(() => ({}));
+        const url = data?.checkoutUrl || state?.checkoutUrl || '/cart';
+        if (data?.checkoutUrl) {
+          state.checkoutUrl = data.checkoutUrl;
+          localStorage.setItem('pearson_agent_cart', JSON.stringify(state));
+          window.dispatchEvent(new CustomEvent('pearson:cart-updated'));
+        }
+        window.open(url, '_blank', 'noopener');
+      } catch {
+        window.open('/cart', '_blank', 'noopener');
+      }
+    });
+
+    syncCartLink();
+    window.addEventListener('pearson:cart-updated', syncCartLink);
+    window.addEventListener('storage', (e) => { if (e.key === 'pearson_agent_cart') syncCartLink(); });
   }
 
   const navWrapper = document.createElement('div');
