@@ -58,11 +58,14 @@ export default function decorate(block) {
   // Note: BigCommerce cart is shared across sessions until an order is placed.
   const BACKEND_URL = 'http://algolia-agent-alb-485198481.us-east-1.elb.amazonaws.com';
   const CART_KEY = 'pearson_agent_cart';
+  const DEFAULT_CART_ID = '59dab611-ea18-4349-ab92-c3449d6ec3be';
   const cartState = (() => {
     try {
       const r = localStorage.getItem(CART_KEY);
-      return r ? JSON.parse(r) : {};
-    } catch { return {}; }
+      const s = r ? JSON.parse(r) : {};
+      if (!s.cartId) s.cartId = DEFAULT_CART_ID;
+      return s;
+    } catch { return { cartId: DEFAULT_CART_ID }; }
   })();
   const saveCart = (s) => {
     try {
