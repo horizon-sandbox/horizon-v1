@@ -372,7 +372,7 @@ export default async function decorate(block) {
       if (!cartId) return;
       try {
         const res = await fetch(
-          `https://algolia-agent-alb-485198481.us-east-1.elb.amazonaws.com/api/tools/get-checkout?cartId=${encodeURIComponent(cartId)}`,
+          `http://algolia-agent-alb-485198481.us-east-1.elb.amazonaws.com/api/tools/get-checkout?cartId=${encodeURIComponent(cartId)}`,
         );
         const data = await res.json().catch(() => ({}));
         if (data?.checkoutUrl) {
