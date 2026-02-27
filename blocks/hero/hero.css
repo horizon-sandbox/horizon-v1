@@ -272,6 +272,8 @@ main > div:first-child:has(.hero) > div {
 	align-items: center;
 	gap: 12px;
 	padding: 8px 16px;
+	flex: 1 1 auto;
+	min-width: 0;
 	text-decoration: none;
 	color: inherit;
 	transition: background 0.12s;
@@ -317,6 +319,75 @@ main > div:first-child:has(.hero) > div {
 	white-space: nowrap;
 	overflow: hidden;
 	text-overflow: ellipsis;
+}
+
+/* product tile row: flex so ATC button sits inline */
+.hero-search-products .hero-search-product {
+	display: flex;
+	align-items: center;
+}
+
+/* add-to-cart button on product tile */
+.hero-search-product-atc {
+	flex-shrink: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 32px;
+	height: 32px;
+	margin-right: 10px;
+	border: 1.5px solid #512eab;
+	border-radius: 50%;
+	background: transparent;
+	color: #512eab;
+	cursor: pointer;
+	transition: background 0.12s, color 0.12s, border-color 0.12s;
+}
+
+.hero-search-product-atc:hover:not(:disabled) {
+	background: #512eab;
+	color: #fff;
+}
+
+.hero-search-product-atc[data-state='loading'] {
+	opacity: 0.7;
+	animation: atc-spin 0.7s linear infinite;
+}
+
+@keyframes atc-spin {
+	to { transform: rotate(360deg); }
+}
+
+.hero-search-product-atc[data-state='done'] {
+	background: #1b8a5a;
+	border-color: #1b8a5a;
+	color: #fff;
+}
+
+.hero-search-product-atc[data-state='done'] svg {
+	display: none;
+}
+
+.hero-search-product-atc[data-state='done']::after {
+	content: '✓';
+	font-size: 0.9rem;
+	line-height: 1;
+}
+
+.hero-search-product-atc[data-state='error'] {
+	background: #c0392b;
+	border-color: #c0392b;
+	color: #fff;
+}
+
+.hero-search-product-atc[data-state='error'] svg {
+	display: none;
+}
+
+.hero-search-product-atc[data-state='error']::after {
+	content: '✗';
+	font-size: 0.9rem;
+	line-height: 1;
 }
 
 /* footer — "N items found" | "View all" */
@@ -645,6 +716,184 @@ main > div:first-child:has(.hero) > div {
 	font-size: var(--typesize-default);
 	font-weight: var(--typeweight--semibold);
 	color: var(--color--text-brand-01);
+}
+
+/* Hide the built-in search-results carousel inside tool messages */
+.ais-ChatMessage-tool .ais-Carousel {
+	display: none;
+}
+
+/* ── Tool cards (.tc) — shown inside chat messages for cart actions ── */
+#hero-algolia-chat .tc {
+	background: var(--color--ui-background-primary, #fff);
+	border: 1px solid rgb(81 46 171 / 25%);
+	border-radius: var(--corners-card, 8px);
+	padding: 12px 14px;
+	font-size: 13px;
+	min-width: 220px;
+	max-width: 340px;
+	box-shadow: 0 2px 4px rgb(81 46 171 / 8%);
+}
+
+#hero-algolia-chat .tc-title {
+	font-size: 11px;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.06em;
+	color: var(--color--text-brand-01, #512eab);
+	margin-bottom: 8px;
+}
+
+#hero-algolia-chat .tc-row {
+	display: flex;
+	justify-content: space-between;
+	gap: 8px;
+	padding: 3px 0;
+	font-size: 12px;
+}
+
+#hero-algolia-chat .tc-key {
+	color: var(--color--text-secondary, #555);
+}
+
+#hero-algolia-chat .tc-val {
+	font-weight: 600;
+	color: var(--color--text-primary, #060609);
+	text-align: right;
+	max-width: 180px;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+#hero-algolia-chat .tc-status {
+	display: inline-block;
+	margin-top: 8px;
+	padding: 3px 9px;
+	border-radius: 999px;
+	font-size: 11px;
+	font-weight: 700;
+}
+
+#hero-algolia-chat .tc-loading {
+	background: #fef3c7;
+	color: #92400e;
+}
+
+#hero-algolia-chat .tc-done {
+	background: #d1fae5;
+	color: #065f46;
+}
+
+#hero-algolia-chat .tc-error {
+	background: #fee2e2;
+	color: #991b1b;
+}
+
+#hero-algolia-chat .tc-item {
+	display: flex;
+	gap: 10px;
+	align-items: flex-start;
+	padding: 8px 0;
+	border-bottom: 1px solid rgb(81 46 171 / 8%);
+}
+
+#hero-algolia-chat .tc-item:last-of-type {
+	border-bottom: none;
+}
+
+#hero-algolia-chat .tc-item-image {
+	flex-shrink: 0;
+	width: 44px;
+	height: 58px;
+	border-radius: 4px;
+	overflow: hidden;
+	background: var(--color--ui-background-secondary, #f4f4f9);
+}
+
+/* stylelint-disable-next-line no-descending-specificity */
+#hero-algolia-chat .tc-item-image img {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+	display: block;
+}
+
+#hero-algolia-chat .tc-item-body {
+	flex: 1;
+	min-width: 0;
+}
+
+#hero-algolia-chat .tc-item-title {
+	font-weight: 700;
+	font-size: 12px;
+	color: var(--color--text-primary, #060609);
+	line-height: 1.3;
+	display: -webkit-box;
+	-webkit-line-clamp: 2;
+	line-clamp: 2;
+	-webkit-box-orient: vertical;
+	overflow: hidden;
+}
+
+#hero-algolia-chat .tc-item-meta {
+	display: flex;
+	justify-content: space-between;
+	margin-top: 4px;
+	font-size: 11px;
+}
+
+#hero-algolia-chat .tc-item-qty {
+	color: var(--color--text-secondary, #555);
+}
+
+#hero-algolia-chat .tc-item-price {
+	font-weight: 700;
+	color: var(--color--text-primary, #060609);
+}
+
+#hero-algolia-chat .tc-new-badge {
+	display: inline-block;
+	background: rgb(81 46 171 / 10%);
+	color: var(--color--text-brand-01, #512eab);
+	font-size: 10px;
+	font-weight: 700;
+	border-radius: 4px;
+	padding: 1px 5px;
+	margin-left: 4px;
+	vertical-align: middle;
+}
+
+#hero-algolia-chat .tc-divider {
+	border: none;
+	border-top: 2px solid rgb(81 46 171 / 15%);
+	margin: 8px 0 6px;
+}
+
+#hero-algolia-chat .tc-total-row {
+	display: flex;
+	justify-content: space-between;
+	font-weight: 700;
+	font-size: 13px;
+	color: var(--color--text-primary, #060609);
+}
+
+#hero-algolia-chat .tc-link {
+	display: block;
+	margin-top: 10px;
+	padding: 9px 12px;
+	background: var(--color--icon-brand-02, #512eab);
+	color: #fff;
+	text-decoration: none;
+	border-radius: var(--corners-card, 8px);
+	font-size: 13px;
+	font-weight: 700;
+	text-align: center;
+	transition: background 0.2s;
+}
+
+#hero-algolia-chat .tc-link:hover {
+	background: #3d1f7f;
 }
 
 /* stylelint-enable selector-class-pattern */
