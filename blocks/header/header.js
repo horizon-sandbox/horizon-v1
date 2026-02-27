@@ -357,30 +357,31 @@ export default async function decorate(block) {
       } catch { /* ignore */ }
     };
 
-    // On click: always fetch a fresh checkout URL before opening so stale
-    // links from previous sessions or cross-widget adds don't send the user
-    // to an expired URL.
+    // On click: open a new tab immediately (preserves user gesture), then
+    // navigate it to a fresh checkout URL once the fetch resolves.
     cartLink.addEventListener('click', async (e) => {
       e.preventDefault();
+      const raw = localStorage.getItem('pearson_agent_cart');
+      const state = raw ? JSON.parse(raw) : null;
+      const cartId = state?.cartId;
+      const fallbackUrl = state?.checkoutUrl || '/cart';
+
+      // Open immediately — must be synchronous to avoid popup blocker
+      const tab = window.open(fallbackUrl, '_blank', 'noopener');
+
+      if (!cartId) return;
       try {
-        const raw = localStorage.getItem('pearson_agent_cart');
-        const state = raw ? JSON.parse(raw) : null;
-        const cartId = state?.cartId;
-        if (!cartId) { window.open('/cart', '_blank', 'noopener'); return; }
         const res = await fetch(
-          `http://algolia-agent-alb-485198481.us-east-1.elb.amazonaws.com/api/tools/get-checkout?cartId=${encodeURIComponent(cartId)}`,
+          `https://algolia-agent-alb-485198481.us-east-1.elb.amazonaws.com/api/tools/get-checkout?cartId=${encodeURIComponent(cartId)}`,
         );
         const data = await res.json().catch(() => ({}));
-        const url = data?.checkoutUrl || state?.checkoutUrl || '/cart';
         if (data?.checkoutUrl) {
+          if (tab && !tab.closed) tab.location.replace(data.checkoutUrl);
           state.checkoutUrl = data.checkoutUrl;
           localStorage.setItem('pearson_agent_cart', JSON.stringify(state));
           window.dispatchEvent(new CustomEvent('pearson:cart-updated'));
         }
-        window.open(url, '_blank', 'noopener');
-      } catch {
-        window.open('/cart', '_blank', 'noopener');
-      }
+      } catch { /* fallback URL already loaded */ }
     });
 
     syncCartLink();
