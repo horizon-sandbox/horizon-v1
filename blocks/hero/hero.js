@@ -56,7 +56,7 @@ export default function decorate(block) {
   }
   // ── Shared cart state (used by autocomplete ATC tiles and chat tool handlers) ──
   // Note: BigCommerce cart is shared across sessions until an order is placed.
-  const BACKEND_URL = 'http://algolia-agent-alb-485198481.us-east-1.elb.amazonaws.com';
+  const BACKEND_URL = 'https://algolia-agent-alb-485198481.us-east-1.elb.amazonaws.com';
   const CART_KEY = 'pearson_agent_cart';
   const cartState = (() => {
     try {
