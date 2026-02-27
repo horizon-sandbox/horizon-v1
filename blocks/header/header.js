@@ -386,7 +386,7 @@ export default async function decorate(block) {
 
     // On page load, fetch a fresh cart from the backend to get the live count.
     // Falls back to the cached count if the request fails or there is no cartId.
-    const DEFAULT_CART_ID = '59dab611-ea18-4349-ab92-c3449d6ec3be';
+    const DEFAULT_CART_ID = '7a868477-fa87-44a3-9141-e64fa5ed24a0';
     const refreshCartCount = async () => {
       try {
         const raw = localStorage.getItem('pearson_agent_cart');
