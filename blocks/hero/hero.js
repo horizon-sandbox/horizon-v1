@@ -54,7 +54,61 @@ export default function decorate(block) {
       window.location.href = query ? `/search.html?q=${encodeURIComponent(query)}` : '/search.html';
     });
   }
-
+  // ── Shared cart state (used by autocomplete ATC tiles and chat tool handlers) ──
+  // Note: BigCommerce cart is shared across sessions until an order is placed.
+  const BACKEND_URL = 'http://algolia-agent-alb-485198481.us-east-1.elb.amazonaws.com';
+  const CART_KEY = 'pearson_agent_cart';
+  const cartState = (() => {
+    try {
+      const r = localStorage.getItem(CART_KEY);
+      return r ? JSON.parse(r) : {};
+    } catch { return {}; }
+  })();
+  const saveCart = (s) => {
+    try {
+      if (s.cartId) localStorage.setItem(CART_KEY, JSON.stringify(s));
+      else localStorage.removeItem(CART_KEY);
+    } catch { /* ignore storage errors */ }
+  };
+  const mergeCart = (data) => {
+    if (data.cart) cartState.cart = data.cart;
+    if (data.cartId) cartState.cartId = data.cartId;
+    if (data.checkoutUrl) cartState.checkoutUrl = data.checkoutUrl;
+    saveCart(cartState);
+    window.dispatchEvent(new CustomEvent('pearson:cart-updated'));
+  };
+  const apiCall = async (method, path, body) => {
+    const res = await fetch(BACKEND_URL + path, {
+      method,
+      headers: { 'Content-Type': 'application/json' },
+      body: body ? JSON.stringify(body) : undefined,
+    });
+    const json = await res.json().catch(() => ({}));
+    if (!res.ok) throw Object.assign(new Error(json?.error?.message || `HTTP ${res.status}`), { data: json, statusCode: res.status });
+    return json;
+  };
+  const clearCart = () => {
+    delete cartState.cartId;
+    delete cartState.cart;
+    delete cartState.checkoutUrl;
+    localStorage.removeItem(CART_KEY);
+    window.dispatchEvent(new CustomEvent('pearson:cart-updated'));
+  };
+  // Add to cart with automatic retry: if the stored cartId is rejected (400),
+  // clear it and try again so BigCommerce creates a fresh cart.
+  const addToCartCall = async (productId, quantity = 1) => {
+    const payload = { productId, quantity };
+    if (cartState.cartId) payload.cartId = cartState.cartId;
+    try {
+      return await apiCall('POST', '/api/tools/add-to-cart', payload);
+    } catch (err) {
+      if (err.statusCode === 400 && payload.cartId) {
+        clearCart();
+        return apiCall('POST', '/api/tools/add-to-cart', { productId, quantity });
+      }
+      throw err;
+    }
+  };
   // ── Autocomplete dropdown ──────────────────────────────────────────────────
   async function initAutocomplete() {
     try {
@@ -110,6 +164,7 @@ export default function decorate(block) {
         const thumb = hit.smallThumbnail ? `${IMG_PREFIX}${hit.smallThumbnail}` : '';
         const rawUrl = hit.url || '';
         const url = rawUrl.startsWith('http') ? rawUrl : `${STORE_HOST}${rawUrl || `#${hit.objectID}`}`;
+        const isbn = (hit.isbn13 && hit.isbn13[0]) || hit.objectID;
         return `<li class="hero-search-product">
           <a class="hero-search-product-link" href="${url}">
             ${thumb
@@ -120,6 +175,9 @@ export default function decorate(block) {
               ${author ? `<span class="hero-search-product-author">${author}</span>` : ''}
             </div>
           </a>
+          <button class="hero-search-product-atc" type="button" data-product-id="${isbn}" aria-label="Add ${hitTitle} to cart">
+            <svg aria-hidden="true" focusable="false" width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><line x1="3" y1="6" x2="21" y2="6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M16 10a4 4 0 01-8 0" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
         </li>`;
       };
 
@@ -219,6 +277,25 @@ export default function decorate(block) {
         // Keep input focused when clicking inside dropdown
         dropdown.addEventListener('mousedown', (e) => e.preventDefault());
 
+        // Add-to-cart button on product tile (event delegation)
+        dropdown.addEventListener('click', async (e) => {
+          const btn = e.target.closest('.hero-search-product-atc');
+          if (!btn || btn.disabled) return;
+          e.preventDefault();
+          const { productId } = btn.dataset;
+          btn.disabled = true;
+          btn.dataset.state = 'loading';
+          try {
+            const data = await addToCartCall(productId, 1);
+            mergeCart(data);
+            btn.dataset.state = 'done';
+          } catch (err) {
+            btn.dataset.state = 'error';
+            btn.title = err.message;
+            setTimeout(() => { btn.disabled = false; btn.dataset.state = ''; }, 2000);
+          }
+        });
+
         // Close when clicking outside search bar or dropdown
         document.addEventListener('click', (e) => {
           if (!staticPlaceholder.contains(e.target) && !dropdown.contains(e.target)) {
@@ -258,10 +335,157 @@ export default function decorate(block) {
       const searchClient = liteClient('XFOI9EBBHR', '3b463119b3996ce4822a14242b948870');
       const searchInstance = instantsearch({ searchClient });
 
+      // ── Tool handlers ───────────────────────────────────────────────────────
+      // Trim the BigCommerce response to only the fields the LLM and templates
+      // need — full payload causes provider 400 (context too large).
+      const summarizeCart = (data) => ({
+        cartId: data.cartId,
+        checkoutUrl: data.checkoutUrl,
+        cart: data.cart ? {
+          items: (data.cart.items || []).map((i) => ({
+            name: i.name,
+            quantity: i.quantity,
+            price: i.price,
+            imageUrl: i.imageUrl,
+          })),
+          total: data.cart.total,
+          itemCount: data.cart.itemCount,
+          currencyCode: data.cart.currencyCode,
+        } : undefined,
+      });
+
+      const toolAddToCart = async ({ input, addToolResult }) => {
+        const productId = String(input?.productId || input?.product_id || '');
+        const quantity = Number(input?.quantity) || 1;
+        try {
+          const data = await addToCartCall(productId, quantity);
+          mergeCart(data);
+          addToolResult({ output: summarizeCart(data) });
+        } catch (err) {
+          addToolResult({ output: { error: err.message } });
+        }
+      };
+
+      const toolGetCart = async ({ input, addToolResult }) => {
+        const id = input?.cartId || cartState.cartId;
+        if (!id) { addToolResult({ output: { error: 'No active cart. Add an item first.' } }); return; }
+        try {
+          const data = await apiCall('GET', `/api/tools/get-cart?cartId=${encodeURIComponent(id)}`);
+          mergeCart(data);
+          addToolResult({ output: summarizeCart(data) });
+        } catch (err) {
+          addToolResult({ output: { error: err.message } });
+        }
+      };
+
+      const toolGetCheckoutLink = async ({ input, addToolResult }) => {
+        const id = input?.cartId || cartState.cartId;
+        if (!id) { addToolResult({ output: { error: 'No active cart. Add an item first.' } }); return; }
+        try {
+          const data = await apiCall('GET', `/api/tools/get-checkout?cartId=${encodeURIComponent(id)}`);
+          mergeCart(data);
+          if (data.checkoutUrl) window.open(data.checkoutUrl, '_blank', 'noopener');
+          addToolResult({ output: { checkoutUrl: data.checkoutUrl } });
+        } catch (err) {
+          addToolResult({ output: { error: err.message } });
+        }
+      };
+
       searchInstance.addWidgets([
         chat({
           container: chatContainer,
-          agentId: '8839c362-66e6-4eac-98a1-8fca6e1d1b68',
+          agentId: '0284fb45-aa25-4f6d-b34f-2278708f970b',
+
+          // ── Client-side tools (must match names in Agent Studio) ───────────
+          tools: {
+            add_to_cart: {
+              onToolCall: toolAddToCart,
+              templates: {
+                layout({ message }, { html }) {
+                  const input = message.input || {};
+                  const { output } = message;
+                  if (output == null) {
+                    return html`<div class="tc"><div class="tc-title">🛒 Add to cart</div><div class="tc-row"><span class="tc-key">Product</span><span class="tc-val">${input.productId}</span></div><span class="tc-status tc-loading">Adding to cart…</span></div>`;
+                  }
+                  if (output.error) {
+                    return html`<div class="tc"><div class="tc-title">🛒 Add to cart</div><span class="tc-status tc-error">✗ ${output.error}</span></div>`;
+                  }
+                  const items = output.cart?.items || [];
+                  const total = (output.cart?.total || 0).toFixed(2);
+                  const currency = output.cart?.currencyCode || '';
+                  const renderCartItem = (item, idx) => {
+                    const { imageUrl, name } = item;
+                    const isLast = idx === items.length - 1;
+                    const imgDiv = imageUrl ? html`<div class="tc-item-image"><img src="${imageUrl}" alt="${name}" loading="lazy" /></div>` : html`<div class="tc-item-image"></div>`;
+                    const titleDiv = html`<div class="tc-item-title">${name}${isLast ? html`<span class="tc-new-badge">new</span>` : ''}</div>`;
+                    return html`<div class="tc-item">${imgDiv}<div class="tc-item-body">${titleDiv}<div class="tc-item-meta"><span class="tc-item-qty">Qty: ${item.quantity}</span><span class="tc-item-price">${currency} $${(item.price || 0).toFixed(2)}</span></div></div></div>`;
+                  };
+                  return html`
+                    <div class="tc">
+                      <div class="tc-title">🛒 Add to cart <span class="tc-status tc-done" style="float:right">✓ Added</span></div>
+                      ${items.map(renderCartItem)}
+                      <hr class="tc-divider" />
+                      <div class="tc-total-row">
+                        <span>Cart total (${output.cart?.itemCount} item${output.cart?.itemCount !== 1 ? 's' : ''})</span>
+                        <span>${currency} $${total}</span>
+                      </div>
+                    </div>`;
+                },
+              },
+            },
+
+            get_cart: {
+              onToolCall: toolGetCart,
+              templates: {
+                layout({ message }, { html }) {
+                  const { output } = message;
+                  if (output == null) {
+                    return html`<div class="tc"><div class="tc-title">🛒 Cart</div><span class="tc-status tc-loading">Loading cart…</span></div>`;
+                  }
+                  if (output.error) {
+                    return html`<div class="tc"><div class="tc-title">🛒 Cart</div><span class="tc-status tc-error">✗ ${output.error}</span></div>`;
+                  }
+                  const items = output.cart?.items || [];
+                  return html`
+                    <div class="tc">
+                      <div class="tc-title">🛒 Cart</div>
+                      ${items.map((item) => html`
+                        <div class="tc-row">
+                          <span class="tc-key">${item.name}</span>
+                          <span class="tc-val">×${item.quantity} $${(item.price || 0).toFixed(2)}</span>
+                        </div>`)}
+                      <div class="tc-row">
+                        <span class="tc-key"><strong>Total</strong></span>
+                        <span class="tc-val"><strong>$${(output.cart?.total || 0).toFixed(2)}</strong></span>
+                      </div>
+                      <span class="tc-status tc-done">✓ Cart loaded</span>
+                    </div>`;
+                },
+              },
+            },
+
+            get_checkout_link: {
+              onToolCall: toolGetCheckoutLink,
+              templates: {
+                layout({ message }, { html }) {
+                  const { output } = message;
+                  if (output == null) {
+                    return html`<div class="tc"><div class="tc-title">💳 Checkout</div><span class="tc-status tc-loading">Generating checkout link…</span></div>`;
+                  }
+                  if (output.error) {
+                    return html`<div class="tc"><div class="tc-title">💳 Checkout</div><span class="tc-status tc-error">✗ ${output.error}</span></div>`;
+                  }
+                  return html`
+                    <div class="tc">
+                      <div class="tc-title">💳 Checkout</div>
+                      <span class="tc-status tc-done">✓ Redirecting to checkout…</span>
+                      <a class="tc-link" href="${output.checkoutUrl}" target="_blank" rel="noopener">🛍️ Complete Purchase</a>
+                    </div>`;
+                },
+              },
+            },
+          },
+
           templates: {
             item(hit, { html }) {
               const hitTitle = hit.name || hit.title || hit.productName || hit.objectID;
