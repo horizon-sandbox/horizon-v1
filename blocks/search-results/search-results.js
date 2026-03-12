@@ -377,6 +377,8 @@ function renderShell(block, config) {
   const embeddedChatLauncher = document.createElement('button');
   embeddedChatLauncher.type = 'button';
   embeddedChatLauncher.className = 'search-results-chatbot-trigger';
+  embeddedChatLauncher.disabled = true;
+  embeddedChatLauncher.setAttribute('aria-disabled', 'true');
   embeddedChatLauncher.setAttribute('aria-expanded', 'false');
   embeddedChatLauncher.setAttribute('aria-controls', 'search-results-embedded-chat-panel');
   embeddedChatLauncher.innerHTML = `
@@ -555,6 +557,46 @@ export default async function decorate(block) {
 
   const shell = renderShell(block, config);
 
+  const setLauncherReady = (ready) => {
+    shell.embeddedChatLauncher.disabled = !ready;
+    shell.embeddedChatLauncher.setAttribute('aria-disabled', ready ? 'false' : 'true');
+    shell.embeddedChatLauncher.classList.toggle('is-disabled', !ready);
+  };
+
+  setLauncherReady(false);
+
+  const hideDefaultFabInDom = () => {
+    const fabNodes = document.querySelectorAll('.chat-fab-container, button.chat-fab-container');
+    fabNodes.forEach((node) => {
+      node.style.setProperty('display', 'none', 'important');
+      node.setAttribute('aria-hidden', 'true');
+      node.setAttribute('tabindex', '-1');
+    });
+  };
+
+  const hideDefaultFab = () => {
+    try {
+      const utilApi = window.embeddedservice_bootstrap?.utilAPI;
+      if (utilApi?.hideChatButton) {
+        utilApi.hideChatButton();
+      }
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.warn('Failed to call utilAPI.hideChatButton:', error);
+    }
+    hideDefaultFabInDom();
+  };
+
+  let fabObserver;
+  const startFabSuppression = () => {
+    hideDefaultFab();
+    if (fabObserver || !document.body) return;
+    fabObserver = new MutationObserver(() => {
+      hideDefaultFabInDom();
+    });
+    fabObserver.observe(document.body, { childList: true, subtree: true });
+  };
+
   const waitForEmbeddedMessagingReady = (timeoutMs = 12000) => new Promise((resolve, reject) => {
     if (window.embeddedservice_bootstrap?.utilAPI) {
       resolve();
@@ -578,12 +620,11 @@ export default async function decorate(block) {
   const chatInitPromise = initInlineEmbeddedMessaging(shell.embeddedChatTarget)
     .then(() => waitForEmbeddedMessagingReady())
     .then(() => {
-      const utilApi = window.embeddedservice_bootstrap?.utilAPI;
-      if (utilApi?.hideChatButton) {
-        utilApi.hideChatButton();
-      }
+      startFabSuppression();
+      setLauncherReady(true);
     })
     .catch((error) => {
+      setLauncherReady(false);
       shell.embeddedChatPanel?.classList.add('is-error');
       if (shell.embeddedChatTarget) {
         shell.embeddedChatTarget.innerHTML = '<p class="search-results-embedded-chat-notice">Enhanced Chat could not be initialized for this page. Please verify Salesforce framing/CSP allowlist settings for this origin.</p>';
@@ -596,6 +637,7 @@ export default async function decorate(block) {
   let chatLaunched = false;
   const launchEmbeddedChat = async () => {
     await chatInitPromise;
+    hideDefaultFab();
     const utilApi = window.embeddedservice_bootstrap?.utilAPI;
     if (!utilApi?.launchChat) {
       throw new Error('Salesforce utilAPI.launchChat is unavailable.');
@@ -604,6 +646,7 @@ export default async function decorate(block) {
       await utilApi.launchChat();
       chatLaunched = true;
     }
+    hideDefaultFab();
   };
 
   let initialPromptSent = false;
