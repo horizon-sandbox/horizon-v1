@@ -854,25 +854,6 @@ body.search-page .chat-fab-container {
   justify-content: center;
 }
 
-.search-results .search-results-chatbot-submit.is-loading {
-  color: transparent;
-}
-
-.search-results .search-results-chatbot-submit.is-loading::after {
-  content: '';
-  position: absolute;
-  width: 18px;
-  height: 18px;
-  border: 2px solid rgb(255 255 255 / 35%);
-  border-top-color: #fff;
-  border-radius: 50%;
-  animation: chatbot-spin 0.7s linear infinite;
-}
-
-@keyframes chatbot-spin {
-  to { transform: rotate(360deg); }
-}
-
 .search-results .search-results-chatbot-submit:disabled {
   opacity: 0.6;
   cursor: not-allowed;
