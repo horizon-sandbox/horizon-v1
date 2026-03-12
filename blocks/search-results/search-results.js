@@ -564,7 +564,13 @@ export default async function decorate(block) {
 
   setLauncherReady(false);
 
+  let isEmbeddedChatButtonCreated = false;
+  window.addEventListener('onEmbeddedMessagingButtonCreated', () => {
+    isEmbeddedChatButtonCreated = true;
+  }, { once: true });
+
   const hideDefaultFab = () => {
+    if (!isEmbeddedChatButtonCreated) return;
     try {
       const utilApi = window.embeddedservice_bootstrap?.utilAPI;
       if (utilApi?.hideChatButton) {
