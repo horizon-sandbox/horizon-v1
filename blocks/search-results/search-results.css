@@ -82,12 +82,27 @@ main > .section.search-results-section > div {
 
 .search-results .search-results-embedded-chat-target {
   width: 100%;
+  height: 520px;
   min-height: 520px;
+  display: flex;
+  align-items: stretch;
   border: 1px solid #d9d6ee;
   border-radius: 16px;
   box-shadow: 0 4px 16px rgb(0 0 0 / 12%);
   overflow: hidden;
   background: linear-gradient(115deg, var(--color--ui-background-med-gray, #e3e1f9) 0.41%, var(--color--ui-background-light, #fff) 17.57%, var(--color--ui-background-gray, #fbfaff) 80.85%, var(--color--ui-background-med-gray, #e3e1f9) 100%);
+}
+
+.search-results .search-results-embedded-chat-target > * {
+  width: 100%;
+  height: 100%;
+  flex: 1 1 auto;
+}
+
+.search-results .search-results-embedded-chat-target iframe {
+  width: 100%;
+  height: 100%;
+  border: 0;
 }
 
 .search-results .search-results-embedded-chat.is-error .search-results-embedded-chat-target {
