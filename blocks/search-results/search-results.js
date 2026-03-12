@@ -106,9 +106,10 @@ async function initInlineEmbeddedMessaging(container) {
   }
 
   bootstrap.settings.language = 'en_US';
+  bootstrap.settings.displayMode = 'inline';
+  bootstrap.settings.headerEnabled = false;
   bootstrap.settings.displayHelpButton = false;
   bootstrap.settings.targetElement = container;
-  bootstrap.settings.targetElementSelector = `#${container.id}`;
 
   await bootstrap.init(
     SF_EMBEDDED_CHAT_CONFIG.orgId,
@@ -373,8 +374,22 @@ function renderShell(block, config) {
   const mainContent = document.createElement('div');
   mainContent.className = 'search-results-main-content';
 
+  const embeddedChatLauncher = document.createElement('button');
+  embeddedChatLauncher.type = 'button';
+  embeddedChatLauncher.className = 'search-results-chatbot-trigger';
+  embeddedChatLauncher.setAttribute('aria-expanded', 'false');
+  embeddedChatLauncher.setAttribute('aria-controls', 'search-results-embedded-chat-panel');
+  embeddedChatLauncher.innerHTML = `
+    <div class="search-results-chatbot-brand">
+      <img class="search-results-chatbot-logo-mark" src="/icons/pearson-logo-full-purple.svg" alt="Pearson AI" loading="lazy" />
+      <span class="search-results-chatbot-ai-label">AI</span>
+    </div>
+  `;
+
   const embeddedChatPanel = document.createElement('div');
   embeddedChatPanel.className = 'search-results-embedded-chat';
+  embeddedChatPanel.id = 'search-results-embedded-chat-panel';
+  embeddedChatPanel.hidden = true;
 
   const embeddedChatTarget = document.createElement('div');
   embeddedChatTarget.className = 'search-results-embedded-chat-target';
@@ -387,7 +402,7 @@ function renderShell(block, config) {
   contentLayout.className = 'search-results-content-layout';
   const searchRow = document.createElement('div');
   searchRow.className = 'search-results-search-row';
-  searchRow.append(searchBox);
+  searchRow.append(searchBox, embeddedChatLauncher);
   mainContent.append(heading, searchRow, embeddedChatPanel, tabs, panels);
   contentLayout.append(mainContent);
 
@@ -460,6 +475,7 @@ function renderShell(block, config) {
   return {
     searchBox,
     containers,
+    embeddedChatLauncher,
     embeddedChatPanel,
     embeddedChatTarget,
   };
@@ -538,13 +554,39 @@ export default async function decorate(block) {
 
   const shell = renderShell(block, config);
 
-  initInlineEmbeddedMessaging(shell.embeddedChatTarget).catch((error) => {
-    shell.embeddedChatPanel?.classList.add('is-error');
-    if (shell.embeddedChatTarget) {
-      shell.embeddedChatTarget.innerHTML = '<p class="search-results-embedded-chat-notice">Enhanced Chat could not be initialized for this page. Please verify Salesforce framing/CSP allowlist settings for this origin.</p>';
+  let chatInitPromise;
+  const openEmbeddedChat = () => {
+    shell.embeddedChatPanel.hidden = false;
+    shell.embeddedChatPanel.classList.add('is-open');
+    shell.embeddedChatLauncher.classList.add('is-open');
+    shell.embeddedChatLauncher.setAttribute('aria-expanded', 'true');
+
+    if (!chatInitPromise) {
+      chatInitPromise = initInlineEmbeddedMessaging(shell.embeddedChatTarget).catch((error) => {
+        shell.embeddedChatPanel?.classList.add('is-error');
+        if (shell.embeddedChatTarget) {
+          shell.embeddedChatTarget.innerHTML = '<p class="search-results-embedded-chat-notice">Enhanced Chat could not be initialized for this page. Please verify Salesforce framing/CSP allowlist settings for this origin.</p>';
+        }
+        // eslint-disable-next-line no-console
+        console.error('Error loading Embedded Messaging: ', error);
+        throw error;
+      });
     }
-    // eslint-disable-next-line no-console
-    console.error('Error loading Embedded Messaging: ', error);
+  };
+
+  const closeEmbeddedChat = () => {
+    shell.embeddedChatPanel.hidden = true;
+    shell.embeddedChatPanel.classList.remove('is-open');
+    shell.embeddedChatLauncher.classList.remove('is-open');
+    shell.embeddedChatLauncher.setAttribute('aria-expanded', 'false');
+  };
+
+  shell.embeddedChatLauncher.addEventListener('click', () => {
+    if (shell.embeddedChatPanel.hidden) {
+      openEmbeddedChat();
+    } else {
+      closeEmbeddedChat();
+    }
   });
 
   const videoSrc = 'https://content.da.live/horizon-sandbox/horizon-v1/content/dam/global/shared/brand/horizon/video/waves-turquoiseburn-1-light-16x9-l2r.mp4';
