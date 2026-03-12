@@ -134,25 +134,6 @@ body.search-page .hero-search .hero-search-content {
   margin: 0 auto;
 }
 
-.hero-search .hero-search-chat {
-  margin-top: 20px;
-  width: min(100%, 640px);
-  max-width: 100%;
-}
-
-.hero-search .hero-search-chat-target {
-  min-height: 520px;
-  width: 100%;
-  border: 1px solid rgb(13 0 77 / 15%);
-  border-radius: 20px;
-  background: #fff;
-  overflow: hidden;
-}
-
-.hero-search .hero-search-chat.is-error .hero-search-chat-target {
-  border-color: #b42318;
-}
-
 .section.hero-search-has-shared-background {
   position: relative;
   overflow: hidden;
@@ -210,9 +191,5 @@ body.search-page .hero-search .hero-search-content {
 
   .hero-search .hero-search-form {
     margin-top: 36px;
-  }
-
-  .hero-search .hero-search-chat {
-    margin-top: 28px;
   }
 }
