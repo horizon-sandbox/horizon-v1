@@ -117,6 +117,10 @@ main > .section.search-results-section > div {
   line-height: 1.5;
 }
 
+body.search-page .chat-fab-container {
+  display: none !important;
+}
+
 .search-results .search-results-searchbox [class~='ais-SearchBox'] {
   display: flex;
   align-items: center;
@@ -496,6 +500,13 @@ main > .section.search-results-section > div {
 
 .search-results .search-results-chatbot-trigger:hover:not(.is-open) {
   box-shadow: 0 6px 28px rgb(0 0 0 / 18%);
+}
+
+.search-results .search-results-chatbot-trigger:disabled,
+.search-results .search-results-chatbot-trigger.is-disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  box-shadow: none;
 }
 
 .search-results .search-results-chatbot-trigger.is-open {
