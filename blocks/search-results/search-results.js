@@ -570,17 +570,6 @@ export default async function decorate(block) {
     isEmbeddedMessagingReady = true;
   }, { once: true });
 
-  const hideDefaultFab = () => {
-    try {
-      const utilApi = window.embeddedservice_bootstrap?.utilAPI;
-      if (utilApi?.hideChatButton) {
-        utilApi.hideChatButton();
-      }
-    } catch (error) {
-      // no-op: util API can be unavailable until ready lifecycle event fires
-    }
-  };
-
   const waitForEmbeddedMessagingReady = (timeoutMs = 12000) => new Promise((resolve, reject) => {
     if (isEmbeddedMessagingReady || window.embeddedservice_bootstrap?.utilAPI) {
       isEmbeddedMessagingReady = true;
@@ -629,7 +618,6 @@ export default async function decorate(block) {
     .then(() => waitForUtilApiMethod('launchChat'))
     .then(() => {
       setLauncherReady(true);
-      hideDefaultFab();
     })
     .catch((error) => {
       setLauncherReady(false);
@@ -654,7 +642,6 @@ export default async function decorate(block) {
       await utilApi.launchChat();
       chatLaunched = true;
     }
-    hideDefaultFab();
   };
 
   const openEmbeddedChat = async () => {
