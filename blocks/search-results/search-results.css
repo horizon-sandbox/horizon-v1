@@ -222,19 +222,26 @@ main > .section.search-results-section > div {
 }
 
 /* When chatbot is open: gradient border + white fill, icon in natural color */
-.search-results-main-content:has(.search-results-chatbot.is-open) [class~='ais-SearchBox-submit'] {
+.search-results-main-content:has(.search-results-chatbot.is-open) [class~='ais-SearchBox-submit'],
+.search-results-main-content:has(.search-results-embedded-chat.is-open) [class~='ais-SearchBox-submit'] {
   border: 3px solid transparent;
   background:
     linear-gradient(#fff, #fff) padding-box,
     conic-gradient(from 225deg, var(--color--icon-accent-01-primary, #df41cf), var(--color--icon-brand-02, #512eab), var(--color--icon-accent-02-primary, #ffce00), var(--color--icon-accent-01-primary, #df41cf)) border-box;
 }
 
-.search-results-main-content:has(.search-results-chatbot.is-open) [class~='ais-SearchBox-submit']::before {
+.search-results-main-content:has(.search-results-chatbot.is-open) [class~='ais-SearchBox-submit']::before,
+.search-results-main-content:has(.search-results-embedded-chat.is-open) [class~='ais-SearchBox-submit']::before {
   display: none;
 }
 
-.search-results-main-content:has(.search-results-chatbot.is-open) [class~='ais-SearchBox-submit']::after {
+.search-results-main-content:has(.search-results-chatbot.is-open) [class~='ais-SearchBox-submit']::after,
+.search-results-main-content:has(.search-results-embedded-chat.is-open) [class~='ais-SearchBox-submit']::after {
   filter: none;
+}
+
+.search-results .search-results-embedded-chat[hidden] {
+  display: none;
 }
 
 .search-results .search-results-tabs {
