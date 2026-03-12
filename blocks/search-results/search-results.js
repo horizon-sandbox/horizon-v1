@@ -637,7 +637,6 @@ export default async function decorate(block) {
   const chatInitPromise = initInlineEmbeddedMessaging(shell.embeddedChatTarget)
     .then(() => {
       startFabSuppression();
-      setLauncherReady(true);
       chatButtonCreatedPromise.then(() => {
         hideDefaultFab();
       });
@@ -654,20 +653,48 @@ export default async function decorate(block) {
     });
 
   let chatLaunched = false;
+  let chatLaunchPromise;
   const launchEmbeddedChat = async () => {
+    if (chatLaunched) return;
+    if (chatLaunchPromise) {
+      await chatLaunchPromise;
+      return;
+    }
+
     await chatInitPromise;
     await chatReadyPromise;
-    hideDefaultFabInDom();
-    const utilApi = window.embeddedservice_bootstrap?.utilAPI;
-    if (!utilApi?.launchChat) {
-      throw new Error('Salesforce utilAPI.launchChat is unavailable.');
-    }
-    if (!chatLaunched) {
+    chatLaunchPromise = (async () => {
+      hideDefaultFabInDom();
+      const utilApi = window.embeddedservice_bootstrap?.utilAPI;
+      if (!utilApi?.launchChat) {
+        throw new Error('Salesforce utilAPI.launchChat is unavailable.');
+      }
       await utilApi.launchChat();
       chatLaunched = true;
+      hideDefaultFab();
+    })();
+
+    try {
+      await chatLaunchPromise;
+    } catch (error) {
+      chatLaunchPromise = null;
+      throw error;
     }
-    hideDefaultFab();
   };
+
+  const preloadChatInBackground = () => {
+    launchEmbeddedChat()
+      .then(() => {
+        setLauncherReady(true);
+      })
+      .catch((error) => {
+        setLauncherReady(false);
+        // eslint-disable-next-line no-console
+        console.error('Error preloading Embedded Messaging chat:', error);
+      });
+  };
+
+  preloadChatInBackground();
 
   let initialPromptSent = false;
   const openEmbeddedChat = async () => {
