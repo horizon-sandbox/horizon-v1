@@ -30,10 +30,6 @@ const SF_EMBEDDED_CHAT_CONFIG = {
 const SF_BOOTSTRAP_SCRIPT_ID = 'sf-enhanced-chat-bootstrap';
 let sfBootstrapScriptPromise;
 
-const SF_ALLOWED_EMBED_ORIGINS = [
-  'https://main--horizon-v1--horizon-sandbox.aem.page',
-];
-
 function loadScript(src) {
   return new Promise((resolve, reject) => {
     const existing = document.querySelector(`script[src="${src}"]`);
@@ -526,10 +522,6 @@ function findQueryInUiState(uiState, config) {
     .find(Boolean) || '';
 }
 
-function isAllowedEmbedOrigin(origin) {
-  return SF_ALLOWED_EMBED_ORIGINS.includes(origin);
-}
-
 export default async function decorate(block) {
   const section = block.closest('.section');
   if (section) {
@@ -546,18 +538,14 @@ export default async function decorate(block) {
 
   const shell = renderShell(block, config);
 
-  if (!isAllowedEmbedOrigin(window.location.origin)) {
-    shell.embeddedChatPanel?.classList.add('is-pending-allowlist');
+  initInlineEmbeddedMessaging(shell.embeddedChatTarget).catch((error) => {
+    shell.embeddedChatPanel?.classList.add('is-error');
     if (shell.embeddedChatTarget) {
-      shell.embeddedChatTarget.innerHTML = '<p class="search-results-embedded-chat-notice">Enhanced Chat is disabled on this preview URL until Salesforce framing allowlist is updated for this origin.</p>';
+      shell.embeddedChatTarget.innerHTML = '<p class="search-results-embedded-chat-notice">Enhanced Chat could not be initialized for this page. Please verify Salesforce framing/CSP allowlist settings for this origin.</p>';
     }
-  } else {
-    initInlineEmbeddedMessaging(shell.embeddedChatTarget).catch((error) => {
-      shell.embeddedChatPanel?.classList.add('is-error');
-      // eslint-disable-next-line no-console
-      console.error('Error loading Embedded Messaging: ', error);
-    });
-  }
+    // eslint-disable-next-line no-console
+    console.error('Error loading Embedded Messaging: ', error);
+  });
 
   const videoSrc = 'https://content.da.live/horizon-sandbox/horizon-v1/content/dam/global/shared/brand/horizon/video/waves-turquoiseburn-1-light-16x9-l2r.mp4';
   const media = document.createElement('div');
