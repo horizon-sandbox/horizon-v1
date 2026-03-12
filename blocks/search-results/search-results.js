@@ -565,18 +565,12 @@ export default async function decorate(block) {
   setLauncherReady(false);
 
   let isEmbeddedMessagingReady = false;
-  let isEmbeddedChatButtonCreated = false;
 
   window.addEventListener('onEmbeddedMessagingReady', () => {
     isEmbeddedMessagingReady = true;
   }, { once: true });
 
-  window.addEventListener('onEmbeddedMessagingButtonCreated', () => {
-    isEmbeddedChatButtonCreated = true;
-  }, { once: true });
-
   const hideDefaultFab = () => {
-    if (!isEmbeddedChatButtonCreated) return;
     try {
       const utilApi = window.embeddedservice_bootstrap?.utilAPI;
       if (utilApi?.hideChatButton) {
@@ -608,30 +602,31 @@ export default async function decorate(block) {
     }, timeoutMs);
   });
 
-  const waitForEmbeddedMessagingButtonCreated = (timeoutMs = 12000) => new Promise((resolve, reject) => {
-    if (isEmbeddedChatButtonCreated) {
+  const waitForUtilApiMethod = (methodName, timeoutMs = 12000) => new Promise((resolve, reject) => {
+    const hasMethod = () => typeof window.embeddedservice_bootstrap?.utilAPI?.[methodName] === 'function';
+    if (hasMethod()) {
       resolve();
       return;
     }
 
-    let timerId;
-    const onButtonCreated = () => {
-      isEmbeddedChatButtonCreated = true;
-      window.removeEventListener('onEmbeddedMessagingButtonCreated', onButtonCreated);
-      clearTimeout(timerId);
-      resolve();
-    };
+    const start = Date.now();
+    const intervalId = window.setInterval(() => {
+      if (hasMethod()) {
+        window.clearInterval(intervalId);
+        resolve();
+        return;
+      }
 
-    window.addEventListener('onEmbeddedMessagingButtonCreated', onButtonCreated, { once: true });
-    timerId = window.setTimeout(() => {
-      window.removeEventListener('onEmbeddedMessagingButtonCreated', onButtonCreated);
-      reject(new Error('Timed out waiting for onEmbeddedMessagingButtonCreated.'));
-    }, timeoutMs);
+      if (Date.now() - start >= timeoutMs) {
+        window.clearInterval(intervalId);
+        reject(new Error(`Timed out waiting for Salesforce utilAPI.${methodName}.`));
+      }
+    }, 100);
   });
 
   const chatInitPromise = initInlineEmbeddedMessaging(shell.embeddedChatTarget)
     .then(() => waitForEmbeddedMessagingReady())
-    .then(() => waitForEmbeddedMessagingButtonCreated())
+    .then(() => waitForUtilApiMethod('launchChat'))
     .then(() => {
       setLauncherReady(true);
       hideDefaultFab();
@@ -650,6 +645,7 @@ export default async function decorate(block) {
   let chatLaunched = false;
   const launchEmbeddedChat = async () => {
     await chatInitPromise;
+    await waitForUtilApiMethod('launchChat');
     const utilApi = window.embeddedservice_bootstrap?.utilAPI;
     if (!utilApi?.launchChat) {
       throw new Error('Salesforce utilAPI.launchChat is unavailable.');
