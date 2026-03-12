@@ -12,82 +12,6 @@ function parseSearchPath(text) {
   return value || '/search';
 }
 
-const SF_EMBEDDED_CHAT_CONFIG = {
-  orgId: '00D9Z00000Cnrp3',
-  deploymentName: 'Pearson_com_Hackathon_ECv2',
-  siteUrl: 'https://pearson--projects.sandbox.my.site.com/ESWPearsoncomHackathon1773259988116',
-  bootstrapUrl: 'https://pearson--projects.sandbox.my.site.com/ESWPearsoncomHackathon1773259988116/assets/js/bootstrap.min.js',
-  scrt2URL: 'https://pearson--projects.sandbox.my.salesforce-scrt.com',
-};
-
-const SF_BOOTSTRAP_SCRIPT_ID = 'sf-enhanced-chat-bootstrap';
-let sfBootstrapScriptPromise;
-
-function loadSalesforceBootstrapScript() {
-  if (window.embeddedservice_bootstrap) {
-    return Promise.resolve();
-  }
-
-  if (sfBootstrapScriptPromise) {
-    return sfBootstrapScriptPromise;
-  }
-
-  sfBootstrapScriptPromise = new Promise((resolve, reject) => {
-    const existing = document.getElementById(SF_BOOTSTRAP_SCRIPT_ID);
-    if (existing) {
-      existing.addEventListener('load', () => resolve(), { once: true });
-      existing.addEventListener('error', () => reject(new Error('Failed to load Salesforce Embedded Messaging bootstrap script.')), { once: true });
-      return;
-    }
-
-    const script = document.createElement('script');
-    script.id = SF_BOOTSTRAP_SCRIPT_ID;
-    script.type = 'text/javascript';
-    script.src = SF_EMBEDDED_CHAT_CONFIG.bootstrapUrl;
-    script.addEventListener('load', () => resolve(), { once: true });
-    script.addEventListener('error', () => reject(new Error('Failed to load Salesforce Embedded Messaging bootstrap script.')), { once: true });
-    document.head.append(script);
-  });
-
-  return sfBootstrapScriptPromise;
-}
-
-async function initInlineEmbeddedMessaging(container) {
-  if (!container || container.dataset.sfEnhancedChatReady === 'true') return;
-
-  await loadSalesforceBootstrapScript();
-
-  try {
-    const bootstrap = window.embeddedservice_bootstrap;
-    if (!bootstrap?.init || !bootstrap?.settings) {
-      throw new Error('Salesforce Embedded Messaging API is unavailable on window.embeddedservice_bootstrap.');
-    }
-
-    const containerSelector = `#${container.id}`;
-
-    bootstrap.settings.language = 'en_US';
-    bootstrap.settings.displayHelpButton = false;
-
-    // Inline mode selectors vary by SDK versions; apply both to maximize compatibility.
-    bootstrap.settings.targetElement = containerSelector;
-    bootstrap.settings.targetElementSelector = containerSelector;
-
-    await bootstrap.init(
-      SF_EMBEDDED_CHAT_CONFIG.orgId,
-      SF_EMBEDDED_CHAT_CONFIG.deploymentName,
-      SF_EMBEDDED_CHAT_CONFIG.siteUrl,
-      {
-        scrt2URL: SF_EMBEDDED_CHAT_CONFIG.scrt2URL,
-      },
-    );
-
-    container.dataset.sfEnhancedChatReady = 'true';
-  } catch (err) {
-    console.error('Error loading Embedded Messaging: ', err);
-    throw err;
-  }
-}
-
 function applySharedSectionBackground(block, picture) {
   if (!picture) return false;
 
@@ -195,24 +119,9 @@ export default function decorate(block) {
   search.append(input, button);
   content.append(search);
 
-  const chat = document.createElement('div');
-  chat.className = 'hero-search-chat';
-
-  const chatTarget = document.createElement('div');
-  chatTarget.className = 'hero-search-chat-target';
-  chatTarget.id = `hero-search-enhanced-chat-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
-  chatTarget.setAttribute('aria-live', 'polite');
-
-  chat.append(chatTarget);
-  content.append(chat);
-
   if (hasSharedBackground) {
     block.append(content);
   } else {
     block.append(bg, content);
   }
-
-  initInlineEmbeddedMessaging(chatTarget).catch(() => {
-    chat.classList.add('is-error');
-  });
 }
