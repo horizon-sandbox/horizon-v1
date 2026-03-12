@@ -105,12 +105,10 @@ async function initInlineEmbeddedMessaging(container) {
     throw new Error('Salesforce Embedded Messaging API is unavailable on window.embeddedservice_bootstrap.');
   }
 
-  const containerSelector = `#${container.id}`;
-
   bootstrap.settings.language = 'en_US';
   bootstrap.settings.displayHelpButton = false;
-  bootstrap.settings.targetElement = containerSelector;
-  bootstrap.settings.targetElementSelector = containerSelector;
+  bootstrap.settings.targetElement = container;
+  bootstrap.settings.targetElementSelector = `#${container.id}`;
 
   await bootstrap.init(
     SF_EMBEDDED_CHAT_CONFIG.orgId,
