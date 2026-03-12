@@ -548,7 +548,6 @@ export default async function decorate(block) {
   const config = readConfig(block);
   const queryFromUrl = new URLSearchParams(window.location.search).get('q') || '';
   const initialQuery = queryFromUrl || config.initialQuery;
-  const initialChatPrompt = queryFromUrl.trim();
 
   if (!config.searchApiKey) {
     block.innerHTML = '<p class="search-results-error">Missing Algolia search key.</p>';
@@ -565,15 +564,6 @@ export default async function decorate(block) {
 
   setLauncherReady(false);
 
-  const hideDefaultFabInDom = () => {
-    const fabNodes = document.querySelectorAll('.chat-fab-container, button.chat-fab-container');
-    fabNodes.forEach((node) => {
-      node.style.setProperty('display', 'none', 'important');
-      node.setAttribute('aria-hidden', 'true');
-      node.setAttribute('tabindex', '-1');
-    });
-  };
-
   const hideDefaultFab = () => {
     try {
       const utilApi = window.embeddedservice_bootstrap?.utilAPI;
@@ -581,35 +571,9 @@ export default async function decorate(block) {
         utilApi.hideChatButton();
       }
     } catch (error) {
-      // no-op: util API can be unavailable until button-created lifecycle event fires
+      // no-op: util API can be unavailable until ready lifecycle event fires
     }
-    hideDefaultFabInDom();
   };
-
-  let fabObserver;
-  const startFabSuppression = () => {
-    hideDefaultFabInDom();
-    if (fabObserver || !document.body) return;
-    fabObserver = new MutationObserver(() => {
-      hideDefaultFabInDom();
-    });
-    fabObserver.observe(document.body, { childList: true, subtree: true });
-  };
-
-  const waitForEmbeddedMessagingButtonCreated = (timeoutMs = 12000) => new Promise((resolve, reject) => {
-    let timerId;
-    const onButtonCreated = () => {
-      window.removeEventListener('onEmbeddedMessagingButtonCreated', onButtonCreated);
-      clearTimeout(timerId);
-      resolve();
-    };
-
-    window.addEventListener('onEmbeddedMessagingButtonCreated', onButtonCreated, { once: true });
-    timerId = window.setTimeout(() => {
-      window.removeEventListener('onEmbeddedMessagingButtonCreated', onButtonCreated);
-      reject(new Error('Timed out waiting for onEmbeddedMessagingButtonCreated.'));
-    }, timeoutMs);
-  });
 
   const waitForEmbeddedMessagingReady = (timeoutMs = 12000) => new Promise((resolve, reject) => {
     if (window.embeddedservice_bootstrap?.utilAPI) {
@@ -631,15 +595,11 @@ export default async function decorate(block) {
     }, timeoutMs);
   });
 
-  const chatReadyPromise = waitForEmbeddedMessagingReady().catch(() => undefined);
-  const chatButtonCreatedPromise = waitForEmbeddedMessagingButtonCreated().catch(() => undefined);
-
   const chatInitPromise = initInlineEmbeddedMessaging(shell.embeddedChatTarget)
+    .then(() => waitForEmbeddedMessagingReady())
     .then(() => {
-      startFabSuppression();
-      chatButtonCreatedPromise.then(() => {
-        hideDefaultFab();
-      });
+      setLauncherReady(true);
+      hideDefaultFab();
     })
     .catch((error) => {
       setLauncherReady(false);
@@ -653,69 +613,25 @@ export default async function decorate(block) {
     });
 
   let chatLaunched = false;
-  let chatLaunchPromise;
   const launchEmbeddedChat = async () => {
-    if (chatLaunched) return;
-    if (chatLaunchPromise) {
-      await chatLaunchPromise;
-      return;
-    }
-
     await chatInitPromise;
-    await chatReadyPromise;
-    chatLaunchPromise = (async () => {
-      hideDefaultFabInDom();
-      const utilApi = window.embeddedservice_bootstrap?.utilAPI;
-      if (!utilApi?.launchChat) {
-        throw new Error('Salesforce utilAPI.launchChat is unavailable.');
-      }
+    const utilApi = window.embeddedservice_bootstrap?.utilAPI;
+    if (!utilApi?.launchChat) {
+      throw new Error('Salesforce utilAPI.launchChat is unavailable.');
+    }
+    if (!chatLaunched) {
       await utilApi.launchChat();
       chatLaunched = true;
-      hideDefaultFab();
-    })();
-
-    try {
-      await chatLaunchPromise;
-    } catch (error) {
-      chatLaunchPromise = null;
-      throw error;
     }
+    hideDefaultFab();
   };
 
-  const preloadChatInBackground = () => {
-    launchEmbeddedChat()
-      .then(() => {
-        setLauncherReady(true);
-      })
-      .catch((error) => {
-        setLauncherReady(false);
-        // eslint-disable-next-line no-console
-        console.error('Error preloading Embedded Messaging chat:', error);
-      });
-  };
-
-  preloadChatInBackground();
-
-  let initialPromptSent = false;
   const openEmbeddedChat = async () => {
     shell.embeddedChatPanel.hidden = false;
     shell.embeddedChatPanel.classList.add('is-open');
-    shell.embeddedChatPanel.classList.add('is-loading');
     shell.embeddedChatLauncher.classList.add('is-open');
     shell.embeddedChatLauncher.setAttribute('aria-expanded', 'true');
-
-    if (!chatLaunched && shell.embeddedChatTarget && !shell.embeddedChatPanel.classList.contains('is-error')) {
-      shell.embeddedChatTarget.innerHTML = '<p class="search-results-embedded-chat-notice">Loading chat...</p>';
-    }
-
-    return launchEmbeddedChat().then(() => {
-      shell.embeddedChatPanel.classList.remove('is-loading');
-    }).catch((error) => {
-      shell.embeddedChatPanel.classList.remove('is-loading');
-      // eslint-disable-next-line no-console
-      console.error('Error launching Embedded Messaging chat:', error);
-      throw error;
-    });
+    await launchEmbeddedChat();
   };
 
   const closeEmbeddedChat = () => {
@@ -734,30 +650,6 @@ export default async function decorate(block) {
       closeEmbeddedChat();
     }
   });
-
-  const sendInitialPromptFromQuery = async () => {
-    if (!initialChatPrompt || initialPromptSent) return;
-
-    initialPromptSent = true;
-    await openEmbeddedChat();
-
-    try {
-      await chatInitPromise;
-      const utilApi = window.embeddedservice_bootstrap?.utilAPI;
-      if (!utilApi?.sendTextMessage) {
-        throw new Error('Salesforce utilAPI.sendTextMessage is unavailable.');
-      }
-      await launchEmbeddedChat();
-      await utilApi.sendTextMessage(initialChatPrompt);
-    } catch (error) {
-      // eslint-disable-next-line no-console
-      console.error('Failed to send initial chat prompt from URL query:', error);
-    }
-  };
-
-  if (initialChatPrompt) {
-    sendInitialPromptFromQuery();
-  }
 
   const videoSrc = 'https://content.da.live/horizon-sandbox/horizon-v1/content/dam/global/shared/brand/horizon/video/waves-turquoiseburn-1-light-16x9-l2r.mp4';
   const media = document.createElement('div');
