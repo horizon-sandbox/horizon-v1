@@ -75,6 +75,33 @@ main > .section.search-results-section > div {
   width: auto;
 }
 
+.search-results .search-results-embedded-chat {
+  width: 100%;
+  margin: 0 0 20px;
+}
+
+.search-results .search-results-embedded-chat-target {
+  width: 100%;
+  min-height: 520px;
+  border: 1px solid #d9d6ee;
+  border-radius: 16px;
+  box-shadow: 0 4px 16px rgb(0 0 0 / 12%);
+  overflow: hidden;
+  background: linear-gradient(115deg, var(--color--ui-background-med-gray, #e3e1f9) 0.41%, var(--color--ui-background-light, #fff) 17.57%, var(--color--ui-background-gray, #fbfaff) 80.85%, var(--color--ui-background-med-gray, #e3e1f9) 100%);
+}
+
+.search-results .search-results-embedded-chat.is-error .search-results-embedded-chat-target {
+  border-color: #b42318;
+}
+
+.search-results .search-results-embedded-chat-notice {
+  margin: 0;
+  padding: 20px;
+  color: #334155;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
 .search-results .search-results-searchbox [class~='ais-SearchBox'] {
   display: flex;
   align-items: center;
