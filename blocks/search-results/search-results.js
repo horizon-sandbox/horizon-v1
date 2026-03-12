@@ -581,21 +581,35 @@ export default async function decorate(block) {
         utilApi.hideChatButton();
       }
     } catch (error) {
-      // eslint-disable-next-line no-console
-      console.warn('Failed to call utilAPI.hideChatButton:', error);
+      // no-op: util API can be unavailable until button-created lifecycle event fires
     }
     hideDefaultFabInDom();
   };
 
   let fabObserver;
   const startFabSuppression = () => {
-    hideDefaultFab();
+    hideDefaultFabInDom();
     if (fabObserver || !document.body) return;
     fabObserver = new MutationObserver(() => {
       hideDefaultFabInDom();
     });
     fabObserver.observe(document.body, { childList: true, subtree: true });
   };
+
+  const waitForEmbeddedMessagingButtonCreated = (timeoutMs = 12000) => new Promise((resolve, reject) => {
+    let timerId;
+    const onButtonCreated = () => {
+      window.removeEventListener('onEmbeddedMessagingButtonCreated', onButtonCreated);
+      clearTimeout(timerId);
+      resolve();
+    };
+
+    window.addEventListener('onEmbeddedMessagingButtonCreated', onButtonCreated, { once: true });
+    timerId = window.setTimeout(() => {
+      window.removeEventListener('onEmbeddedMessagingButtonCreated', onButtonCreated);
+      reject(new Error('Timed out waiting for onEmbeddedMessagingButtonCreated.'));
+    }, timeoutMs);
+  });
 
   const waitForEmbeddedMessagingReady = (timeoutMs = 12000) => new Promise((resolve, reject) => {
     if (window.embeddedservice_bootstrap?.utilAPI) {
@@ -617,11 +631,16 @@ export default async function decorate(block) {
     }, timeoutMs);
   });
 
+  const chatReadyPromise = waitForEmbeddedMessagingReady().catch(() => undefined);
+  const chatButtonCreatedPromise = waitForEmbeddedMessagingButtonCreated().catch(() => undefined);
+
   const chatInitPromise = initInlineEmbeddedMessaging(shell.embeddedChatTarget)
-    .then(() => waitForEmbeddedMessagingReady())
     .then(() => {
       startFabSuppression();
       setLauncherReady(true);
+      chatButtonCreatedPromise.then(() => {
+        hideDefaultFab();
+      });
     })
     .catch((error) => {
       setLauncherReady(false);
@@ -637,7 +656,8 @@ export default async function decorate(block) {
   let chatLaunched = false;
   const launchEmbeddedChat = async () => {
     await chatInitPromise;
-    hideDefaultFab();
+    await chatReadyPromise;
+    hideDefaultFabInDom();
     const utilApi = window.embeddedservice_bootstrap?.utilAPI;
     if (!utilApi?.launchChat) {
       throw new Error('Salesforce utilAPI.launchChat is unavailable.');
@@ -650,15 +670,24 @@ export default async function decorate(block) {
   };
 
   let initialPromptSent = false;
-  const openEmbeddedChat = () => {
+  const openEmbeddedChat = async () => {
     shell.embeddedChatPanel.hidden = false;
     shell.embeddedChatPanel.classList.add('is-open');
+    shell.embeddedChatPanel.classList.add('is-loading');
     shell.embeddedChatLauncher.classList.add('is-open');
     shell.embeddedChatLauncher.setAttribute('aria-expanded', 'true');
 
-    launchEmbeddedChat().catch((error) => {
+    if (!chatLaunched && shell.embeddedChatTarget && !shell.embeddedChatPanel.classList.contains('is-error')) {
+      shell.embeddedChatTarget.innerHTML = '<p class="search-results-embedded-chat-notice">Loading chat...</p>';
+    }
+
+    return launchEmbeddedChat().then(() => {
+      shell.embeddedChatPanel.classList.remove('is-loading');
+    }).catch((error) => {
+      shell.embeddedChatPanel.classList.remove('is-loading');
       // eslint-disable-next-line no-console
       console.error('Error launching Embedded Messaging chat:', error);
+      throw error;
     });
   };
 
@@ -671,7 +700,9 @@ export default async function decorate(block) {
 
   shell.embeddedChatLauncher.addEventListener('click', () => {
     if (shell.embeddedChatPanel.hidden) {
-      openEmbeddedChat();
+      openEmbeddedChat().catch(() => {
+        // launch errors are already handled and surfaced in UI
+      });
     } else {
       closeEmbeddedChat();
     }
@@ -681,7 +712,7 @@ export default async function decorate(block) {
     if (!initialChatPrompt || initialPromptSent) return;
 
     initialPromptSent = true;
-    openEmbeddedChat();
+    await openEmbeddedChat();
 
     try {
       await chatInitPromise;
