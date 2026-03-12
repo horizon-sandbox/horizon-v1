@@ -94,6 +94,20 @@ main > .section.search-results-section > div {
   border-color: #b42318;
 }
 
+.search-results .search-results-embedded-chat-notice {
+  margin: 0;
+  padding: 20px;
+  color: #334155;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.search-results .search-results-embedded-chat.is-pending-allowlist .search-results-embedded-chat-target {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .search-results .search-results-searchbox [class~='ais-SearchBox'] {
   display: flex;
   align-items: center;
