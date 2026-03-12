@@ -564,7 +564,13 @@ export default async function decorate(block) {
 
   setLauncherReady(false);
 
+  let isEmbeddedMessagingReady = false;
   let isEmbeddedChatButtonCreated = false;
+
+  window.addEventListener('onEmbeddedMessagingReady', () => {
+    isEmbeddedMessagingReady = true;
+  }, { once: true });
+
   window.addEventListener('onEmbeddedMessagingButtonCreated', () => {
     isEmbeddedChatButtonCreated = true;
   }, { once: true });
@@ -582,7 +588,8 @@ export default async function decorate(block) {
   };
 
   const waitForEmbeddedMessagingReady = (timeoutMs = 12000) => new Promise((resolve, reject) => {
-    if (window.embeddedservice_bootstrap?.utilAPI) {
+    if (isEmbeddedMessagingReady || window.embeddedservice_bootstrap?.utilAPI) {
+      isEmbeddedMessagingReady = true;
       resolve();
       return;
     }
@@ -601,8 +608,30 @@ export default async function decorate(block) {
     }, timeoutMs);
   });
 
+  const waitForEmbeddedMessagingButtonCreated = (timeoutMs = 12000) => new Promise((resolve, reject) => {
+    if (isEmbeddedChatButtonCreated) {
+      resolve();
+      return;
+    }
+
+    let timerId;
+    const onButtonCreated = () => {
+      isEmbeddedChatButtonCreated = true;
+      window.removeEventListener('onEmbeddedMessagingButtonCreated', onButtonCreated);
+      clearTimeout(timerId);
+      resolve();
+    };
+
+    window.addEventListener('onEmbeddedMessagingButtonCreated', onButtonCreated, { once: true });
+    timerId = window.setTimeout(() => {
+      window.removeEventListener('onEmbeddedMessagingButtonCreated', onButtonCreated);
+      reject(new Error('Timed out waiting for onEmbeddedMessagingButtonCreated.'));
+    }, timeoutMs);
+  });
+
   const chatInitPromise = initInlineEmbeddedMessaging(shell.embeddedChatTarget)
     .then(() => waitForEmbeddedMessagingReady())
+    .then(() => waitForEmbeddedMessagingButtonCreated())
     .then(() => {
       setLauncherReady(true);
       hideDefaultFab();
