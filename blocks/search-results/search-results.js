@@ -546,6 +546,7 @@ export default async function decorate(block) {
   const config = readConfig(block);
   const queryFromUrl = new URLSearchParams(window.location.search).get('q') || '';
   const initialQuery = queryFromUrl || config.initialQuery;
+  const initialChatPrompt = queryFromUrl.trim();
 
   if (!config.searchApiKey) {
     block.innerHTML = '<p class="search-results-error">Missing Algolia search key.</p>';
@@ -554,24 +555,68 @@ export default async function decorate(block) {
 
   const shell = renderShell(block, config);
 
-  let chatInitPromise;
+  const waitForEmbeddedMessagingReady = (timeoutMs = 12000) => new Promise((resolve, reject) => {
+    if (window.embeddedservice_bootstrap?.utilAPI) {
+      resolve();
+      return;
+    }
+
+    let timerId;
+    const onReady = () => {
+      window.removeEventListener('onEmbeddedMessagingReady', onReady);
+      clearTimeout(timerId);
+      resolve();
+    };
+
+    window.addEventListener('onEmbeddedMessagingReady', onReady, { once: true });
+    timerId = window.setTimeout(() => {
+      window.removeEventListener('onEmbeddedMessagingReady', onReady);
+      reject(new Error('Timed out waiting for onEmbeddedMessagingReady.'));
+    }, timeoutMs);
+  });
+
+  const chatInitPromise = initInlineEmbeddedMessaging(shell.embeddedChatTarget)
+    .then(() => waitForEmbeddedMessagingReady())
+    .then(() => {
+      const utilApi = window.embeddedservice_bootstrap?.utilAPI;
+      if (utilApi?.hideChatButton) {
+        utilApi.hideChatButton();
+      }
+    })
+    .catch((error) => {
+      shell.embeddedChatPanel?.classList.add('is-error');
+      if (shell.embeddedChatTarget) {
+        shell.embeddedChatTarget.innerHTML = '<p class="search-results-embedded-chat-notice">Enhanced Chat could not be initialized for this page. Please verify Salesforce framing/CSP allowlist settings for this origin.</p>';
+      }
+      // eslint-disable-next-line no-console
+      console.error('Error loading Embedded Messaging: ', error);
+      throw error;
+    });
+
+  let chatLaunched = false;
+  const launchEmbeddedChat = async () => {
+    await chatInitPromise;
+    const utilApi = window.embeddedservice_bootstrap?.utilAPI;
+    if (!utilApi?.launchChat) {
+      throw new Error('Salesforce utilAPI.launchChat is unavailable.');
+    }
+    if (!chatLaunched) {
+      await utilApi.launchChat();
+      chatLaunched = true;
+    }
+  };
+
+  let initialPromptSent = false;
   const openEmbeddedChat = () => {
     shell.embeddedChatPanel.hidden = false;
     shell.embeddedChatPanel.classList.add('is-open');
     shell.embeddedChatLauncher.classList.add('is-open');
     shell.embeddedChatLauncher.setAttribute('aria-expanded', 'true');
 
-    if (!chatInitPromise) {
-      chatInitPromise = initInlineEmbeddedMessaging(shell.embeddedChatTarget).catch((error) => {
-        shell.embeddedChatPanel?.classList.add('is-error');
-        if (shell.embeddedChatTarget) {
-          shell.embeddedChatTarget.innerHTML = '<p class="search-results-embedded-chat-notice">Enhanced Chat could not be initialized for this page. Please verify Salesforce framing/CSP allowlist settings for this origin.</p>';
-        }
-        // eslint-disable-next-line no-console
-        console.error('Error loading Embedded Messaging: ', error);
-        throw error;
-      });
-    }
+    launchEmbeddedChat().catch((error) => {
+      // eslint-disable-next-line no-console
+      console.error('Error launching Embedded Messaging chat:', error);
+    });
   };
 
   const closeEmbeddedChat = () => {
@@ -588,6 +633,30 @@ export default async function decorate(block) {
       closeEmbeddedChat();
     }
   });
+
+  const sendInitialPromptFromQuery = async () => {
+    if (!initialChatPrompt || initialPromptSent) return;
+
+    initialPromptSent = true;
+    openEmbeddedChat();
+
+    try {
+      await chatInitPromise;
+      const utilApi = window.embeddedservice_bootstrap?.utilAPI;
+      if (!utilApi?.sendTextMessage) {
+        throw new Error('Salesforce utilAPI.sendTextMessage is unavailable.');
+      }
+      await launchEmbeddedChat();
+      await utilApi.sendTextMessage(initialChatPrompt);
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error('Failed to send initial chat prompt from URL query:', error);
+    }
+  };
+
+  if (initialChatPrompt) {
+    sendInitialPromptFromQuery();
+  }
 
   const videoSrc = 'https://content.da.live/horizon-sandbox/horizon-v1/content/dam/global/shared/brand/horizon/video/waves-turquoiseburn-1-light-16x9-l2r.mp4';
   const media = document.createElement('div');
